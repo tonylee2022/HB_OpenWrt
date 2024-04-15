@@ -2,8 +2,11 @@ name: Rockchip OpenWrt
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: 0 18 1 * *
+    inputs:
+      ssh:
+        description: 'SSH connection to Actions'
+        required: false
+        default: 'false'
 
 env:
   REPO_URL: https://github.com/coolsnowwolf/lede
@@ -42,7 +45,7 @@ jobs:
       env:
         DEBIAN_FRONTEND: noninteractive
       run: |
-        docker rmi $(docker images -q)
+        # docker rmi $(docker images -q)
         sudo rm -rf /usr/share/dotnet /etc/apt/sources.list.d /usr/local/lib/android $AGENT_TOOLSDIRECTORY
         sudo -E apt-get -y purge azure-cli ghc* zulu* llvm* firefox google* dotnet* powershell openjdk* mongodb* moby* || true
         sudo -E apt-get -y update
@@ -115,6 +118,13 @@ jobs:
         $GITHUB_WORKSPACE/scripts/preset-clash-core.sh $CLASH_KERNEL
         $GITHUB_WORKSPACE/scripts/preset-terminal-tools.sh
         $GITHUB_WORKSPACE/scripts/preset-adguard-core.sh $CLASH_KERNEL
+
+    - name: SSH connection to Actions
+      uses: P3TERX/ssh2actions@main
+      if: (github.event.inputs.ssh == 'true' && github.event.inputs.ssh  != 'false') || contains(github.event.action, 'ssh')
+      env:
+        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}  
 
     - name: Download DL Package
       run: |
@@ -190,3 +200,16 @@ jobs:
           - ${{ env.COMMIT_DATE }}
           - ${{ env.COMMIT_MESSAGE }}
           - ${{ env.COMMIT_HASH }}
+          
+    - name: Notify on Compile Status
+      if: always()
+      uses: appleboy/telegram-action@master
+      with:
+        to: ${{ secrets.TELEGRAM_CHAT_ID }}
+        token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        message: |
+          编译状态 ${{ job.status }}!
+          工作流: ${{ github.workflow }}
+          用户名: ${{ github.actor }}
+          仓库: ${{ github.repository }}
+          Commit: ${{ github.sha }}
