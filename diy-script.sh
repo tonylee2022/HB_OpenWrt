@@ -10,7 +10,7 @@ sed -i 's/192\.168\.1\.1/192\.168\.5\.1/g' package/base-files/files/bin/config_g
 sed -i 's/\/bin\/ash/\/usr\/bin\/zsh/g' package/base-files/files/etc/passwd
 
 # TTYD 免登录
-sed -i 's|/bin/login|/bin/login -f root|g' feeds/packages/utils/ttyd/files/ttyd.config
+# sed -i 's|/bin/login|/bin/login -f root|g' feeds/packages/utils/ttyd/files/ttyd.config
 
 # 移除要替换的包
 # rm -rf feeds/packages/net/mosdns
