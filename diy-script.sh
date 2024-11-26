@@ -135,9 +135,10 @@ find package/*/ -maxdepth 2 -path "*/Makefile" | xargs -i sed -i 's/PKG_SOURCE_U
 # 调整 APP 到 正确的分类菜单
 sed -i '/^include ..\/..\/luci.mk/i LUCI_CATEGORY:=nas' feeds/luci/applications/luci-app-samba4/Makefile
 sed -i '/^include ..\/..\/luci.mk/i LUCI_CATEGORY:=nas' feeds/luci/applications/luci-app-transmission/Makefile
+sed -i '/^include ..\/..\/luci.mk/i LUCI_CATEGORY:=nas' feeds/luci/applications/luci-app-aria2/Makefile
 sed -i '/^include ..\/..\/luci.mk/i LUCI_CATEGORY:=system' feeds/luci/applications/luci-app-ttyd/Makefile
 sed -i '/^include ..\/..\/luci.mk/i LUCI_CATEGORY:=system' package/luci-app-argon-config/Makefile
-sed -i '/^include ..\/..\/luci.mk/i LUCI_CATEGORY:=network' feeds/luci/applications/luci-app-nlbwmon/Makefile
+
 
 ./scripts/feeds update -a
 ./scripts/feeds install -a
