@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # 修改默认IP
-sed -i 's/192\.168\.1\.1/192\.168\.5\.1/g' package/base-files/files/bin/config_generate
+sed -i 's/192\.168\.1\.1/192\.168\.5\.2/g' package/base-files/luci2/bin/config_generate
 
 # 修改默认密码为空
-# sed -i 's/$1$V4UetPzk$CYXluq4wUazHjmCDBCqXF.//g' package/lean/default-settings/files/zzz-default-settings
+sed -i 's/$1$V4UetPzk$CYXluq4wUazHjmCDBCqXF.//g' package/lean/default-settings/files/zzz-default-settings
 
 # 更改默认 Shell 为 zsh
 sed -i 's/\/bin\/ash/\/usr\/bin\/zsh/g' package/base-files/files/etc/passwd
@@ -133,11 +133,11 @@ find package/*/ -maxdepth 2 -path "*/Makefile" | xargs -i sed -i 's/PKG_SOURCE_U
 # find package/luci-theme-*/* -type f -name '*luci-theme-*' -print -exec sed -i '/set luci.main.mediaurlbase/d' {} \;
 
 # 调整 APP 到 正确的分类菜单
-sed -i '/^include ..\/..\/luci.mk/i LUCI_CATEGORY:=nas' feeds/luci/applications/luci-app-samba4/Makefile
-sed -i '/^include ..\/..\/luci.mk/i LUCI_CATEGORY:=nas' feeds/luci/applications/luci-app-transmission/Makefile
-sed -i '/^include ..\/..\/luci.mk/i LUCI_CATEGORY:=nas' feeds/luci/applications/luci-app-aria2/Makefile
-sed -i '/^include ..\/..\/luci.mk/i LUCI_CATEGORY:=system' feeds/luci/applications/luci-app-ttyd/Makefile
-sed -i '/^include ..\/..\/luci.mk/i LUCI_CATEGORY:=system' package/luci-app-argon-config/Makefile
+# sed -i '/^include ..\/..\/luci.mk/i LUCI_CATEGORY:=nas' feeds/luci/applications/luci-app-samba4/Makefile
+# sed -i '/^include ..\/..\/luci.mk/i LUCI_CATEGORY:=nas' feeds/luci/applications/luci-app-transmission/Makefile
+# sed -i '/^include ..\/..\/luci.mk/i LUCI_CATEGORY:=nas' feeds/luci/applications/luci-app-aria2/Makefile
+# sed -i '/^include ..\/..\/luci.mk/i LUCI_CATEGORY:=system' feeds/luci/applications/luci-app-ttyd/Makefile
+# sed -i '/^include ..\/..\/luci.mk/i LUCI_CATEGORY:=system' package/luci-app-argon-config/Makefile
 
 
 ./scripts/feeds update -a
