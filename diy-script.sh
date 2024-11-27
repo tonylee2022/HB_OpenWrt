@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # 修改默认IP
-sed -i 's/192\.168\.1\.1/192\.168\.5\.2/g' package/base-files/luci2/bin/config_generate
+sed -i 's/192\.168\.1\.1/192\.168\.5\.1/g' package/base-files/luci2/bin/config_generate
 
 # 修改默认密码为空
-sed -i 's/$1$V4UetPzk$CYXluq4wUazHjmCDBCqXF.//g' package/lean/default-settings/files/zzz-default-settings
+# sed -i 's/$1$V4UetPzk$CYXluq4wUazHjmCDBCqXF.//g' package/lean/default-settings/files/zzz-default-settings
 
 # 更改默认 Shell 为 zsh
 sed -i 's/\/bin\/ash/\/usr\/bin\/zsh/g' package/base-files/files/etc/passwd
@@ -13,13 +13,9 @@ sed -i 's/\/bin\/ash/\/usr\/bin\/zsh/g' package/base-files/files/etc/passwd
 # sed -i 's|/bin/login|/bin/login -f root|g' feeds/packages/utils/ttyd/files/ttyd.config
 
 # 移除要替换的包
-# rm -rf feeds/packages/net/mosdns
-# rm -rf feeds/packages/net/msd_lite
 rm -rf feeds/packages/net/smartdns
 rm -rf feeds/packages/net/{brook,chinadns-ng,dns2socks,dns2tcp,gn,hysteria,ipt2socks,microsocks,naiveproxy,pdnsd-alt,shadowsocks-rust,shadowsocksr-libev,simple-obfs,sing-box,ssocks,tcping,trojan-go,trojan-plus,trojan,tuic-client,v2ray-core,v2ray-geodata,v2ray-plugin,xray-core,xray-plugin}
-# rm -rf feeds/luci/themes/luci-theme-argon
-# rm -rf feeds/luci/themes/luci-theme-netgear
-# rm -rf feeds/luci/applications/luci-app-filebrowser
+rm -rf feeds/luci/themes/luci-theme-argon
 rm -rf feeds/luci/applications/luci-app-smartdns
 rm -rf feeds/luci/applications/luci-app-passwall
 rm -rf feeds/luci/applications/luci-app-passwall2
@@ -39,17 +35,12 @@ function git_sparse_clone() {
 
 # 添加额外插件
 # git clone --depth=1 https://github.com/kongfl888/luci-app-adguardhome package/luci-app-adguardhome
-# git clone --depth=1 -b openwrt-18.06 https://github.com/tty228/luci-app-wechatpush package/luci-app-serverchan
-# git clone --depth=1 https://github.com/ilxp/luci-app-ikoolproxy package/luci-app-ikoolproxy
 git clone --depth=1 https://github.com/esirplayground/luci-app-poweroff package/luci-app-poweroff
 git clone --depth=1 https://github.com/destan19/OpenAppFilter package/OpenAppFilter
 git clone --depth=1 https://github.com/Jason6111/luci-app-netdata package/luci-app-netdata
 git clone --depth=1 https://github.com/Erope/openwrt_nezha package/openwrt_nezha
 git_sparse_clone master https://github.com/sirpdboy/netspeedtest homebox luci-app-netspeedtest
 git_sparse_clone main https://github.com/kenzok8/small-package luci-app-advanced luci-app-quickstart quickstart
-# git_sparse_clone main https://github.com/Lienol/openwrt-package luci-app-filebrowser luci-app-ssr-mudb-server
-# git_sparse_clone openwrt-18.06 https://github.com/immortalwrt/luci applications/luci-app-eqos 
-# git_sparse_clone master https://github.com/syb999/openwrt-19.07.1 package/network/services/msd_lite
 
 # 科学上网插件
 # git clone --depth=1 -b main https://github.com/fw876/helloworld package/luci-app-ssr-plus
@@ -59,11 +50,8 @@ git clone --depth=1 https://github.com/xiaorouji/openwrt-passwall2 package/luci-
 git_sparse_clone master https://github.com/vernesong/OpenClash luci-app-openclash
 
 # Themes
-# git clone --depth=1 -b 18.06 https://github.com/kiddin9/luci-theme-edge package/luci-theme-edge
-# git clone --depth=1 -b 18.06 https://github.com/jerrykuku/luci-theme-argon package/luci-theme-argon
+git clone --depth=1 https://github.com/jerrykuku/luci-theme-argon package/luci-theme-argon
 git clone --depth=1 https://github.com/jerrykuku/luci-app-argon-config package/luci-app-argon-config
-# git clone --depth=1 https://github.com/xiaoqingfengATGH/luci-theme-infinityfreedom package/luci-theme-infinityfreedom
-# git_sparse_clone main https://github.com/haiibo/packages luci-theme-atmaterial luci-theme-opentomcat luci-theme-netgear
 
 # 更改 Argon 主题背景
 # cp -f $GITHUB_WORKSPACE/images/bg1.jpg package/luci-theme-argon/htdocs/luci-static/argon/img/bg1.jpg
@@ -78,19 +66,8 @@ git clone --depth=1 https://github.com/jerrykuku/luci-app-argon-config package/l
 git clone --depth=1 -b lede https://github.com/pymumu/luci-app-smartdns package/luci-app-smartdns
 git clone --depth=1 https://github.com/pymumu/openwrt-smartdns package/smartdns
 
-# msd_lite
-# git clone --depth=1 https://github.com/ximiTech/luci-app-msd_lite package/luci-app-msd_lite
-# git clone --depth=1 https://github.com/ximiTech/msd_lite package/msd_lite
-
-# MosDNS
-# git clone --depth=1 https://github.com/sbwml/luci-app-mosdns package/luci-app-mosdns
-
 # Alist
 # git clone --depth=1 https://github.com/sbwml/luci-app-alist package/luci-app-alist
-
-# DDNS.to
-# git_sparse_clone main https://github.com/linkease/nas-packages-luci luci/luci-app-ddnsto
-# git_sparse_clone master https://github.com/linkease/nas-packages network/services/ddnsto
 
 # iStore
 git_sparse_clone main https://github.com/linkease/istore-ui app-store-ui
