@@ -189,7 +189,7 @@ jobs:
           ### 📒 固件信息
           - 💻 平台架构: ${{ env.DEVICE_TARGET }}-${{ env.DEVICE_SUBTARGET }}
           - ⚽ 固件源码: ${{ env.REPO_URL }}
-          - 💝 源码分支: ${{ env.REPO_BRANCH }}
+          - 💝 源码分支: 23.05 ${{ env.REPO_BRANCH }}
           - 🚀 内核版本: ${{ env.KERNEL }}
           - 🌐 默认地址: 192.168.5.1
           - 🔑 默认密码: password
