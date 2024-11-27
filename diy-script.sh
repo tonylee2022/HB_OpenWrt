@@ -21,7 +21,6 @@ rm -rf feeds/luci/applications/luci-app-passwall
 rm -rf feeds/luci/applications/luci-app-passwall2
 rm -rf feeds/luci/applications/luci-app-openclash
 rm -rf feeds/luci/applications/luci-app-netdata
-# rm -rf feeds/luci/applications/luci-app-serverchan
 
 # Git稀疏克隆，只克隆指定目录到本地
 function git_sparse_clone() {
@@ -43,7 +42,6 @@ git_sparse_clone master https://github.com/sirpdboy/netspeedtest homebox luci-ap
 git_sparse_clone main https://github.com/kenzok8/small-package luci-app-advanced luci-app-quickstart quickstart
 
 # 科学上网插件
-# git clone --depth=1 -b main https://github.com/fw876/helloworld package/luci-app-ssr-plus
 git clone --depth=1 https://github.com/xiaorouji/openwrt-passwall-packages package/openwrt-passwall
 git clone --depth=1 https://github.com/xiaorouji/openwrt-passwall package/luci-app-passwall
 git clone --depth=1 https://github.com/xiaorouji/openwrt-passwall2 package/luci-app-passwall2
@@ -63,7 +61,7 @@ git clone --depth=1 https://github.com/jerrykuku/luci-app-argon-config package/l
 # sed -i "s|ARMv8|ARMv8_PLUS|g" package/luci-app-amlogic/root/etc/config/amlogic
 
 # SmartDNS
-git clone --depth=1 -b lede https://github.com/pymumu/luci-app-smartdns package/luci-app-smartdns
+git clone --depth=1 https://github.com/pymumu/luci-app-smartdns package/luci-app-smartdns
 git clone --depth=1 https://github.com/pymumu/openwrt-smartdns package/smartdns
 
 # Alist
