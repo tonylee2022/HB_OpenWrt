@@ -39,7 +39,8 @@ git clone --depth=1 https://github.com/Erope/openwrt_nezha package/openwrt_nezha
 git clone --depth=1 https://github.com/sirpdboy/luci-app-poweroffdevice package/luci-app-poweroffdevice
 git_sparse_clone master https://github.com/sirpdboy/netspeedtest homebox luci-app-netspeedtest
 git_sparse_clone main https://github.com/kenzok8/small-package luci-app-advanced luci-app-quickstart quickstart
-git_sparse_clone openwrt-23.05 https://github.com/coolsnowwolf/luci  applications/luci-app-autoreboot applications/luci-app-diskman applications/luci-app-openvpn-server applications/luci-app-ramfree applications/luci-app-syncdial
+git_sparse_clone openwrt-23.05 https://github.com/coolsnowwolf/luci  applications/luci-app-autoreboot applications/luci-app-diskman applications/luci-app-openvpn-server applications/luci-app-ramfree applications/luci-app-syncdial applications/luci-app-zerotier
+git_sparse_clone master https://github.com/coolsnowwolf/packages utils/zsh
 
 # 科学上网插件
 git clone --depth=1 https://github.com/xiaorouji/openwrt-passwall-packages package/openwrt-passwall
