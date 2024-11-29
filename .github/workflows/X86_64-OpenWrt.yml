@@ -9,8 +9,8 @@ on:
         default: 'false'
     
 env:
-  REPO_URL: https://github.com/coolsnowwolf/lede
-  REPO_BRANCH: master
+  REPO_URL: https://github.com/openwrt/openwrt
+  REPO_BRANCH: openwrt-23.05
   CONFIG_FILE: configs/x86_64.config
   DIY_SCRIPT: diy-script.sh
   CLASH_KERNEL: amd64
