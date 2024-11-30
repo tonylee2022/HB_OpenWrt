@@ -34,18 +34,18 @@ function git_sparse_clone() {
 # git clone --depth=1 https://github.com/esirplayground/luci-app-poweroff package/luci-app-poweroff
 git clone --depth=1 https://github.com/destan19/OpenAppFilter package/OpenAppFilter
 git clone --depth=1 https://github.com/Jason6111/luci-app-netdata package/luci-app-netdata
-git clone --depth=1 https://github.com/Erope/openwrt_nezha package/openwrt_nezha
+# git clone --depth=1 https://github.com/Erope/openwrt_nezha package/openwrt_nezha
 git clone --depth=1 https://github.com/sirpdboy/luci-app-poweroffdevice package/luci-app-poweroffdevice
 git_sparse_clone master https://github.com/sirpdboy/netspeedtest homebox luci-app-netspeedtest
-git_sparse_clone main https://github.com/kenzok8/small-package luci-app-advanced luci-app-quickstart quickstart
+# git_sparse_clone main https://github.com/kenzok8/small-package luci-app-advanced luci-app-quickstart quickstart
 git_sparse_clone openwrt-23.05 https://github.com/coolsnowwolf/luci  applications/luci-app-autoreboot applications/luci-app-diskman applications/luci-app-openvpn-server applications/luci-app-ramfree applications/luci-app-syncdial applications/luci-app-vlmcsd applications/luci-app-vsftpd applications/luci-app-zerotier
 git_sparse_clone master https://github.com/coolsnowwolf/packages net/vlmcsd net/vsftpd
 git_sparse_clone master https://github.com/coolsnowwolf/lede package/lean/vsftpd-alt
 
 # 科学上网插件
-git clone --depth=1 https://github.com/xiaorouji/openwrt-passwall-packages package/openwrt-passwall
-git clone --depth=1 https://github.com/xiaorouji/openwrt-passwall package/luci-app-passwall
-git clone --depth=1 https://github.com/xiaorouji/openwrt-passwall2 package/luci-app-passwall2
+# git clone --depth=1 https://github.com/xiaorouji/openwrt-passwall-packages package/openwrt-passwall
+# git clone --depth=1 https://github.com/xiaorouji/openwrt-passwall package/luci-app-passwall
+# git clone --depth=1 https://github.com/xiaorouji/openwrt-passwall2 package/luci-app-passwall2
 git_sparse_clone master https://github.com/vernesong/OpenClash luci-app-openclash
 
 # Themes
@@ -69,8 +69,8 @@ git clone --depth=1 https://github.com/jerrykuku/luci-app-argon-config package/l
 # git clone --depth=1 https://github.com/sbwml/luci-app-alist package/luci-app-alist
 
 # iStore
-git_sparse_clone main https://github.com/linkease/istore-ui app-store-ui
-git_sparse_clone main https://github.com/linkease/istore luci
+# git_sparse_clone main https://github.com/linkease/istore-ui app-store-ui
+# git_sparse_clone main https://github.com/linkease/istore luci
 
 # 在线用户
 git_sparse_clone main https://github.com/haiibo/packages luci-app-onliner
@@ -94,7 +94,7 @@ chmod 755 package/luci-app-onliner/root/usr/share/onliner/setnlbw.sh
 
 # 修复 xray-core1.8.8 编译错误
 # rm -rf feeds/packages/lang/golang
-# git clone https://github.com/sbwml/packages_lang_golang -b 22.x feeds/packages/lang/golang
+# git clone https://github.com/sbwml/packages_lang_golang -b 23.x feeds/packages/lang/golang
 
 # 修复 armv8 设备 xfsprogs 报错
 # sed -i 's/TARGET_CFLAGS.*/TARGET_CFLAGS += -DHAVE_MAP_SYNC -D_LARGEFILE64_SOURCE/g' feeds/packages/utils/xfsprogs/Makefile
