@@ -2,12 +2,12 @@ name: X86_64 OpenWrt
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: 0 19 * * *
+  # schedule:
+    # - cron: 0 19 * * *
     
 env:
   REPO_URL: https://github.com/openwrt/openwrt
-  REPO_BRANCH: openwrt-23.05
+  REPO_BRANCH: openwrt-24.10
   CONFIG_FILE: configs/x86_64.config
   DIY_SCRIPT: diy-script.sh
   CLASH_KERNEL: amd64
@@ -179,7 +179,7 @@ jobs:
           ### 📒 固件信息
           - 💻 平台架构: ${{ env.DEVICE_TARGET }}-${{ env.DEVICE_SUBTARGET }}
           - ⚽ 固件源码: ${{ env.REPO_URL }}
-          - 💝 源码分支: 23.05 ${{ env.REPO_BRANCH }}
+          - 💝 源码分支: ${{ env.REPO_BRANCH }}
           - 🚀 内核版本: ${{ env.KERNEL }}
           - 🌐 默认地址: 192.168.5.1
           - 🔑 默认密码: password
@@ -194,7 +194,7 @@ jobs:
       uses: dev-drprasad/delete-older-releases@master
       if: env.FIRMWARE_RELEASE == 'true' && !cancelled()
       with:
-        keep_latest: 6
+        keep_latest: 8
         delete_tags: true
       env:
         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
@@ -210,4 +210,6 @@ jobs:
           工作流: ${{ github.workflow }}
           用户名: ${{ github.actor }}
           仓库: ${{ github.repository }}
+          固件源码: ${{ env.REPO_URL }}
+          源码分支: ${{ env.REPO_BRANCH }}
           Commit: ${{ github.sha }}
