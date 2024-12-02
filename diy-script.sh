@@ -34,10 +34,10 @@ function git_sparse_clone() {
 
 # 添加额外插件
 # git clone --depth=1 https://github.com/kongfl888/luci-app-adguardhome package/luci-app-adguardhome
-git clone --depth=1 https://github.com/esirplayground/luci-app-poweroff package/luci-app-poweroff
+# git clone --depth=1 https://github.com/esirplayground/luci-app-poweroff package/luci-app-poweroff
 git clone --depth=1 https://github.com/destan19/OpenAppFilter package/OpenAppFilter
 git clone --depth=1 https://github.com/Jason6111/luci-app-netdata package/luci-app-netdata
-git clone --depth=1 https://github.com/Erope/openwrt_nezha package/openwrt_nezha
+# git clone --depth=1 https://github.com/Erope/openwrt_nezha package/openwrt_nezha
 git_sparse_clone master https://github.com/sirpdboy/netspeedtest homebox luci-app-netspeedtest
 git_sparse_clone main https://github.com/kenzok8/small-package luci-app-advanced luci-app-quickstart quickstart
 
@@ -108,11 +108,7 @@ find package/*/ -maxdepth 2 -path "*/Makefile" | xargs -i sed -i 's/PKG_SOURCE_U
 # find package/luci-theme-*/* -type f -name '*luci-theme-*' -print -exec sed -i '/set luci.main.mediaurlbase/d' {} \;
 
 # 调整 APP 到 正确的分类菜单
-# sed -i '/^include ..\/..\/luci.mk/i LUCI_CATEGORY:=nas' feeds/luci/applications/luci-app-samba4/Makefile
-# sed -i '/^include ..\/..\/luci.mk/i LUCI_CATEGORY:=nas' feeds/luci/applications/luci-app-transmission/Makefile
-# sed -i '/^include ..\/..\/luci.mk/i LUCI_CATEGORY:=nas' feeds/luci/applications/luci-app-aria2/Makefile
-# sed -i '/^include ..\/..\/luci.mk/i LUCI_CATEGORY:=system' feeds/luci/applications/luci-app-ttyd/Makefile
-# sed -i '/^include ..\/..\/luci.mk/i LUCI_CATEGORY:=system' package/luci-app-argon-config/Makefile
+
 
 
 ./scripts/feeds update -a
