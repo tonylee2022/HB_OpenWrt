@@ -192,7 +192,7 @@ jobs:
       uses: dev-drprasad/delete-older-releases@master
       if: env.FIRMWARE_RELEASE == 'true' && !cancelled()
       with:
-        keep_latest: 6
+        keep_latest: 8
         delete_tags: true
       env:
         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
@@ -208,4 +208,6 @@ jobs:
           工作流: ${{ github.workflow }}
           用户名: ${{ github.actor }}
           仓库: ${{ github.repository }}
+          固件源码: ${{ env.REPO_URL }}
+          源码分支: 23.05 ${{ env.REPO_BRANCH }}
           Commit: ${{ github.sha }}
