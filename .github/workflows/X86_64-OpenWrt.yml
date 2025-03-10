@@ -64,7 +64,8 @@ jobs:
         git clone $REPO_URL -b $REPO_BRANCH openwrt
         cd openwrt
         # git checkout d1ebc2ca7d21782a963710b4ba60c2d014dbdf00
-        sed -i '/^src-git luci https:\/\/github.com\/coolsnowwolf\/luci.git;openwrt-23.05$/s/;openwrt-23.05//' feeds.conf.default  ##修改luci为18.06
+        sed -i '/^src-git luci https:\/\/github\.com\/coolsnowwolf\/luci$/s/^#//' feeds.conf.default
+        sed -i '/^src-git https:\/\/github\.com\/coolsnowwolf\/luci\.git;openwrt-23\.05$/s/^/#/' feeds.conf.default  ##修改luci为18.06
         echo "OPENWRT_PATH=$PWD" >> $GITHUB_ENV
         COMMIT_AUTHOR=$(git show -s --date=short --format="作者: %an")
         echo "COMMIT_AUTHOR=$COMMIT_AUTHOR" >> $GITHUB_ENV
