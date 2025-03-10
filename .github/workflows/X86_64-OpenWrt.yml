@@ -42,7 +42,7 @@ jobs:
         sudo rm -rf /usr/share/dotnet /etc/apt/sources.list.d /usr/local/lib/android $AGENT_TOOLSDIRECTORY
         sudo -E apt-get -y purge azure-cli ghc* zulu* llvm* firefox google* dotnet* powershell openjdk* mongodb* moby* || true
         sudo -E apt-get -y update
-        sudo -E apt-get -y install $(curl -fsSL https://tonylee2022.github.io/openwrt_d/)
+        sudo -E apt-get -y install $(curl -fsSL https://raw.githubusercontent.com/tonylee2022/openwrt_d/main/depends_ubuntu_2204.txt)
         sudo -E systemctl daemon-reload
         sudo -E apt-get -y autoremove --purge
         sudo -E apt-get -y clean
