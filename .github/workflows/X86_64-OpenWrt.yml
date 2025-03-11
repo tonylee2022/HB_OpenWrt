@@ -210,4 +210,6 @@ jobs:
           工作流: ${{ github.workflow }}
           用户名: ${{ github.actor }}
           仓库: ${{ github.repository }}
+          固件源码: ${{ env.REPO_URL }}
+          源码分支: 18.06 ${{ env.REPO_BRANCH }}
           Commit: ${{ github.sha }}
