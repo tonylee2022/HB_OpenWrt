@@ -13,8 +13,6 @@ sed -i 's|/bin/login|/bin/login -f root|g' feeds/packages/utils/ttyd/files/ttyd.
 
 # 移除要替换的包
 rm -rf feeds/packages/net/smartdns
-rm -rf feeds/packages/net/transmission
-rm -rf feeds/packages/net/transmission-web-control
 rm -rf feeds/luci/themes/luci-theme-argon
 rm -rf feeds/luci/applications/luci-app-argon-config
 rm -rf feeds/luci/applications/luci-app-smartdns
@@ -39,7 +37,7 @@ git clone --depth=1 https://github.com/destan19/OpenAppFilter package/OpenAppFil
 git clone --depth=1 https://github.com/Jason6111/luci-app-netdata package/luci-app-netdata
 # git clone --depth=1 https://github.com/Erope/openwrt_nezha package/openwrt_nezha
 git_sparse_clone master https://github.com/sirpdboy/netspeedtest homebox luci-app-netspeedtest
-git_sparse_clone main https://github.com/kenzok8/small-package luci-app-advanced luci-app-quickstart quickstart luci-app-transmission transmission transmission-web-control
+git_sparse_clone main https://github.com/kenzok8/small-package luci-app-advanced luci-app-quickstart quickstart
 
 # 科学上网插件
 git clone --depth=1 https://github.com/xiaorouji/openwrt-passwall-packages package/openwrt-passwall
