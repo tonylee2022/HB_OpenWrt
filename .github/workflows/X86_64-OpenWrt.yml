@@ -152,6 +152,9 @@ jobs:
         cd $OPENWRT_PATH/bin/targets/*/*
         cat sha256sums
         cp $OPENWRT_PATH/.config build.config
+        mv -f $OPENWRT_PATH/bin/packages/*/*/*.ipk packages
+        tar -zcf Packages.tar.gz packages
+        rm -rf packages feeds.buildinfo version.buildinfo
         echo "KERNEL=$(cat *.manifest | grep ^kernel | cut -d- -f2 | tr -d ' ')" >> $GITHUB_ENV
         echo "FIRMWARE_PATH=$PWD" >> $GITHUB_ENV
 
@@ -170,7 +173,7 @@ jobs:
         allowUpdates: true
         tag: ${{ env.FILE_DATE }}
         token: ${{ secrets.GH_TOKEN }}
-        artifacts: ${{ env.FIRMWARE_PATH }}/* ${{ env.OPENWRT_PATH }}/bin/packages/*/*/*.ipk
+        artifacts: ${{ env.FIRMWARE_PATH }}/*
         body: |
           **This is OpenWrt Firmware for ${{ env.FIRMWARE_TAG }}**
           ### 📒 固件信息
@@ -186,9 +189,6 @@ jobs:
           - ${{ env.COMMIT_DATE }}
           - ${{ env.COMMIT_MESSAGE }}
           - ${{ env.COMMIT_HASH }}
-          
-          ### 📦 软件源地址
-          - 软件源地址: https://github.com/${{ github.repository }}/releases/download/${{ env.FILE_DATE }}
 
     - name: Remove old Releases
       uses: dev-drprasad/delete-older-releases@master
