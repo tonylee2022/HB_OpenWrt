@@ -150,12 +150,12 @@ jobs:
         cat sha256sums
         cp $OPENWRT_PATH/.config build.config
         # 复制软件包文件到临时目录进行打包，不影响原始结构
-        if [ -d "$OPENWRT_PATH/bin/packages" ]; then
-          mkdir -p temp_packages
-          find $OPENWRT_PATH/bin/packages -type f -name "*.ipk" -exec cp {} temp_packages/ \;
-          tar -zcf Packages.tar.gz -C temp_packages .
-          rm -rf temp_packages
-        fi
+        #if [ -d "$OPENWRT_PATH/bin/packages" ]; then
+        #  mkdir -p temp_packages
+        #  find $OPENWRT_PATH/bin/packages -type f -name "*.ipk" -exec cp {} temp_packages/ \;
+        #  tar -zcf Packages.tar.gz -C temp_packages .
+        #  rm -rf temp_packages
+        #fi
         # 清理不需要的文件，但保留软件包
         rm -f feeds.buildinfo version.buildinfo
         echo "KERNEL=$(cat *.manifest | grep ^kernel | cut -d- -f2 | tr -d ' ')" >> $GITHUB_ENV
@@ -204,7 +204,7 @@ jobs:
         
     - name: Deploy to GitHub Pages
       if: steps.compile.outputs.status == 'success'
-      uses: peaceiris/actions-gh-pages@v3
+      uses: peaceiris/actions-gh-pages@v4
       with:
         github_token: ${{ secrets.GH_TOKEN }}
         publish_dir: ${{ env.OPENWRT_PATH }}/bin
