@@ -149,9 +149,15 @@ jobs:
         cd $OPENWRT_PATH/bin/targets/*/*
         cat sha256sums
         cp $OPENWRT_PATH/.config build.config
-        mv -f $OPENWRT_PATH/bin/packages/*/*/*.ipk packages
-        tar -zcf Packages.tar.gz packages
-        rm -rf packages feeds.buildinfo version.buildinfo
+        # 复制软件包文件到临时目录进行打包，不影响原始结构
+        if [ -d "$OPENWRT_PATH/bin/packages" ]; then
+          mkdir -p temp_packages
+          find $OPENWRT_PATH/bin/packages -type f -name "*.ipk" -exec cp {} temp_packages/ \;
+          tar -zcf Packages.tar.gz -C temp_packages .
+          rm -rf temp_packages
+        fi
+        # 清理不需要的文件，但保留软件包
+        rm -f feeds.buildinfo version.buildinfo
         echo "KERNEL=$(cat *.manifest | grep ^kernel | cut -d- -f2 | tr -d ' ')" >> $GITHUB_ENV
         echo "FIRMWARE_PATH=$PWD" >> $GITHUB_ENV
 
@@ -195,6 +201,18 @@ jobs:
         delete_tags: true
       env:
         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        
+    - name: Deploy to GitHub Pages
+      if: steps.compile.outputs.status == 'success'
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GH_TOKEN }}
+        publish_dir: ${{ env.OPENWRT_PATH }}/bin
+        publish_branch: gh-pages
+        destination_dir: releases/23.05  # 使用luci版本作为子目录
+        user_name: 'github-actions[bot]'
+        user_email: 'github-actions[bot]@users.noreply.github.com'
+        commit_message: 'Update OpenWrt repository files - ${{ env.FILE_DATE }}'
    
     - name: Notify on Compile Status
       if: always()
@@ -210,3 +228,4 @@ jobs:
           固件源码: ${{ env.REPO_URL }}
           源码分支: 23.05 ${{ env.REPO_BRANCH }}
           Commit: ${{ github.sha }}
+          软件源已发布到 GitHub Pages！
