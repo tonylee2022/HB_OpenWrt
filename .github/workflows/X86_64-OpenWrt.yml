@@ -140,7 +140,7 @@ jobs:
       if: steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true'
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ env.SOURCE_REPO }}-bin-${{ env.DEVICE_TARGET }}
+        name: LEDE23.05-bin
         path: ${{ env.OPENWRT_PATH }}/bin
 
     - name: Organize Files
