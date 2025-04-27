@@ -14,7 +14,7 @@ jobs:
     - name: Download Build Output Artifact
       uses: actions/download-artifact@v4
       with:
-        name: openwrt-bin
+        name: LEDE23.05-bin
         path: ./bin
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
