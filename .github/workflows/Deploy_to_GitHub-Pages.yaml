@@ -1,12 +1,16 @@
 name: Deploy to GitHub Pages
 on:
-  workflow_dispatch:  # 设置为手动触发
+  workflow_dispatch:
     inputs:
       artifact_name:
-        description: 'Name of the Artifact to download (e.g., openwrt-bin-YYYY.MM.DD.HH.MM)'
+        description: 'Name of the Artifact to download'
         required: true
         type: string
         default: 'lede-bin'
+      run_id:
+        description: 'Run ID of the workflow that uploaded the Artifact'
+        required: true
+        type: string
 jobs:
   Deploy:
     runs-on: ubuntu-22.04
@@ -18,13 +22,14 @@ jobs:
         sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
         sudo rm -rf /tmp/* /var/cache/* || true
         df -hT
-    - name: Download Build Output Artifact
-      uses: actions/download-artifact@v4
+    - name: Download OpenWrt Build Artifact
+      uses: actions/download-artifact@v4  # 使用 v3 确保兼容性
       with:
         name: ${{ inputs.artifact_name }}
+        github-token: ${{ secrets.GH_TOKEN }}
+        #repository: tonylee2022/HB_OpenWrt  # 替换为您的实际仓库
+        run-id: ${{ inputs.run_id }}
         path: ./bin
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Check Downloaded Files
       run: |
         ls -la ./bin
@@ -38,7 +43,7 @@ jobs:
         destination_dir: releases/23.05
         user_name: 'github-actions[bot]'
         user_email: 'github-actions[bot]@users.noreply.github.com'
-        commit_message: 'Update OpenWrt repository files - ${{ github.event.workflow_run.head_commit.message }}'
+        commit_message: 'Update OpenWrt repository files - ${{ inputs.artifact_name }}'
         exclude_assets: '*.tar.xz, *.img.gz, *.tar.gz, *.zip'
     - name: Notify on Deploy Status
       if: always()
