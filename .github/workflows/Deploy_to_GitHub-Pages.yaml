@@ -1,20 +1,27 @@
 name: Deploy to GitHub Pages
 on:
-  workflow_run:
-    workflows: ["X86_64 OpenWrt"]
-    types:
-      - completed
+  workflow_dispatch:  # 设置为手动触发
+    inputs:
+      artifact_name:
+        description: 'Name of the Artifact to download (e.g., openwrt-bin-YYYY.MM.DD.HH.MM)'
+        required: true
+        type: string
+        default: 'openwrt-bin'
 jobs:
   Deploy:
     runs-on: ubuntu-22.04
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v3
+    - name: Clean Up Disk Space
+      run: |
+        sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+        sudo rm -rf /tmp/* /var/cache/* || true
+        df -hT
     - name: Download Build Output Artifact
       uses: actions/download-artifact@v4
       with:
-        name: lede-bin-x86-64-2025.04.27.23.07
+        name: ${{ inputs.artifact_name }}
         path: ./bin
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
