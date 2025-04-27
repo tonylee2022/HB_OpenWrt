@@ -210,3 +210,4 @@ jobs:
           固件源码: ${{ env.REPO_URL }}
           源码分支: 23.05 ${{ env.REPO_BRANCH }}
           Commit: ${{ github.sha }}
+          编译完成，等待发布到 GitHub Pages！
