@@ -140,8 +140,10 @@ jobs:
       if: steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true'
       uses: actions/upload-artifact@v4
       with:
-        name: LEDE23.05-bin
-        path: ${{ env.OPENWRT_PATH }}/bin
+        name: lede23.05-bin
+        path: |
+          ${{ env.OPENWRT_PATH }}/bin/packages/
+          ${{ env.OPENWRT_PATH }}/bin/targets/x86/64/packages/
 
     - name: Organize Files
       if: steps.compile.outputs.status == 'success'
@@ -154,13 +156,6 @@ jobs:
         rm -rf packages feeds.buildinfo version.buildinfo
         echo "KERNEL=$(cat *.manifest | grep ^kernel | cut -d- -f2 | tr -d ' ')" >> $GITHUB_ENV
         echo "FIRMWARE_PATH=$PWD" >> $GITHUB_ENV
-
-    - name: Upload Firmware To Artifact
-      if: steps.compile.outputs.status == 'success' && env.FIRMWARE_RELEASE == 'true'
-      uses: actions/upload-artifact@v4
-      with:
-        name: ${{ env.SOURCE_REPO }}-firmware-${{ env.DEVICE_TARGET }}-${{ env.DEVICE_SUBTARGET }}-${{ env.FILE_DATE }}
-        path: ${{ env.FIRMWARE_PATH }}
 
     - name: Upload Firmware To Release
       if: steps.compile.outputs.status == 'success' && env.FIRMWARE_RELEASE == 'true'
