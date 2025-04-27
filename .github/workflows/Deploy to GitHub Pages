@@ -1,0 +1,47 @@
+name: Deploy to GitHub Pages
+on:
+  workflow_run:
+    workflows: ["X86_64 OpenWrt"]
+    types:
+      - completed
+jobs:
+  Deploy:
+    runs-on: ubuntu-22.04
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+    - name: Download Build Output Artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: openwrt-bin-${{ github.event.workflow_run.head_commit.id }}-${{ github.event.workflow_run.created_at }}
+        path: ./bin
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Check Downloaded Files
+      run: |
+        ls -la ./bin
+        df -hT
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v4
+      with:
+        github_token: ${{ secrets.GH_TOKEN }}
+        publish_dir: ./bin
+        publish_branch: gh-pages
+        destination_dir: releases/23.05
+        user_name: 'github-actions[bot]'
+        user_email: 'github-actions[bot]@users.noreply.github.com'
+        commit_message: 'Update OpenWrt repository files - ${{ github.event.workflow_run.head_commit.message }}'
+        exclude_assets: '*.tar.xz, *.img.gz, *.tar.gz, *.zip'
+    - name: Notify on Deploy Status
+      if: always()
+      uses: appleboy/telegram-action@master
+      with:
+        to: ${{ secrets.TELEGRAM_CHAT_ID }}
+        token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        message: |
+          发布状态 ${{ job.status }}!
+          工作流: ${{ github.workflow }}
+          用户名: ${{ github.actor }}
+          仓库: ${{ github.repository }}
+          软件源已发布到 GitHub Pages！
