@@ -6,7 +6,7 @@ on:
         description: 'Name of the Artifact to download (e.g., openwrt-bin-YYYY.MM.DD.HH.MM)'
         required: true
         type: string
-        default: 'lede-bin-x86-64-2025.04.27.23.07'
+        default: 'lede-bin'
 jobs:
   Deploy:
     runs-on: ubuntu-22.04
@@ -24,7 +24,7 @@ jobs:
         name: ${{ inputs.artifact_name }}
         path: ./bin
       env:
-        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Check Downloaded Files
       run: |
         ls -la ./bin
