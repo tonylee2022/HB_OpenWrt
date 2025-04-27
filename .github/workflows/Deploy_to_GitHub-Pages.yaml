@@ -19,12 +19,12 @@ jobs:
         sudo rm -rf /tmp/* /var/cache/* || true
         df -hT
     - name: Download Build Output Artifact
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: ${{ inputs.artifact_name }}
         path: ./bin
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
     - name: Check Downloaded Files
       run: |
         ls -la ./bin
