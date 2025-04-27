@@ -33,11 +33,22 @@ jobs:
         #repository: tonylee2022/HB_OpenWrt  # 替换为您的实际仓库
         run-id: ${{ inputs.run_id }}
         path: ./bin
-        
-    - name: Check Downloaded Files
+
+    - name: Remove Large Files After Download
       run: |
+        echo "Removing large files from ./bin..."
+        # 删除特定扩展名的大文件
+        find ./bin -type f -name "*.img.gz" -delete
+        find ./bin -type f -name "*.tar.xz" -delete
+        find ./bin -type f -name "*.tar.gz" -delete
+        find ./bin -type f -name "*.zip" -delete
+        find ./bin -type f -name "*.bin" -delete
+        find ./bin -type f -name "*.img" -delete
+        # 或者删除超过一定大小的文件（例如大于100MB）
+        find ./bin -type f -size +100M -delete
+        echo "Files after cleanup:"
         ls -la ./bin
-        df -hT
+        df -hT       
         
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v4
