@@ -6,7 +6,7 @@ on:
         description: 'Name of the Artifact to download (e.g., openwrt-bin-YYYY.MM.DD.HH.MM)'
         required: true
         type: string
-        default: 'openwrt-bin'
+        default: 'lede-bin-x86-64-2025.04.27.23.07'
 jobs:
   Deploy:
     runs-on: ubuntu-22.04
@@ -19,7 +19,7 @@ jobs:
         sudo rm -rf /tmp/* /var/cache/* || true
         df -hT
     - name: Download Build Output Artifact
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v3
       with:
         name: ${{ inputs.artifact_name }}
         path: ./bin
