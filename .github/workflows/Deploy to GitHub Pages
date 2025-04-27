@@ -12,9 +12,9 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v3
     - name: Download Build Output Artifact
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
-        name: openwrt-bin-${{ github.event.workflow_run.head_commit.id }}-${{ github.event.workflow_run.created_at }}
+        name: openwrt-bin
         path: ./bin
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
