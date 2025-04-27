@@ -14,7 +14,7 @@ jobs:
     - name: Download Build Output Artifact
       uses: actions/download-artifact@v4
       with:
-        name: LEDE23.05-bin
+        name: lede-bin-x86-64-2025.04.27.23.07
         path: ./bin
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
