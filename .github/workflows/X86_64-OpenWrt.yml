@@ -219,7 +219,7 @@ jobs:
         user_name: 'github-actions[bot]'
         user_email: 'github-actions[bot]@users.noreply.github.com'
         commit_message: 'Update OpenWrt repository files - ${{ env.FILE_DATE }}'
-        debug: true  # 启用调试，输出更多日志
+        exclude_assets: '*.tar.xz, *.img.gz, *.tar.gz, *.zip'  # 排除常见大文件扩展名
    
     - name: Notify on Compile Status
       if: always()
