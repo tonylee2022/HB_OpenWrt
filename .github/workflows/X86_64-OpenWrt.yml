@@ -135,34 +135,13 @@ jobs:
     - name: Check Space Usage
       if: (!cancelled())
       run: df -hT
-      
-    - name: Clean Up Build Temporary Files
-      if: steps.compile.outputs.status == 'success'
-      run: |
-        cd $OPENWRT_PATH
-        rm -rf build_dir staging_dir tmp dl || true  # 删除编译临时文件
-        echo "Disk space after cleanup:"
-        df -hT
 
     - name: Upload Bin Directory
       if: steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true'
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ env.SOURCE_REPO }}-bin-${{ env.DEVICE_TARGET }}-${{ env.DEVICE_SUBTARGET }}-${{ env.FILE_DATE }}
+        name: ${{ env.SOURCE_REPO }}-bin-${{ env.DEVICE_TARGET }}
         path: ${{ env.OPENWRT_PATH }}/bin
-
-    - name: Deploy to GitHub Pages
-      if: steps.compile.outputs.status == 'success'
-      uses: peaceiris/actions-gh-pages@v4
-      with:
-        github_token: ${{ secrets.GH_TOKEN }}
-        publish_dir: ${{ env.OPENWRT_PATH }}/bin
-        publish_branch: gh-pages
-        #destination_dir: releases/23.05  # 使用luci版本作为子目录
-        user_name: 'github-actions[bot]'
-        user_email: 'github-actions[bot]@users.noreply.github.com'
-        commit_message: 'Update OpenWrt repository files - ${{ env.FILE_DATE }}'
-        exclude_assets: '*.tar.xz, *.img.gz, *.tar.gz, *.zip'  # 排除常见大文件扩展名
 
     - name: Organize Files
       if: steps.compile.outputs.status == 'success'
@@ -217,14 +196,6 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
-    - name: Clean Up Before Deploy
-      run: |
-        sudo rm -rf /tmp/* /var/cache/* /home/runner/runners/2.323.0/_diag/*.log  # 删除临时文件和日志
-        sudo journalctl --vacuum-size=100M  # 清理系统日志
-        df -hT  # 检查清理后的空间
-        
-
-   
     - name: Notify on Compile Status
       if: always()
       uses: appleboy/telegram-action@master
@@ -239,4 +210,3 @@ jobs:
           固件源码: ${{ env.REPO_URL }}
           源码分支: 23.05 ${{ env.REPO_BRANCH }}
           Commit: ${{ github.sha }}
-          软件源已发布到 GitHub Pages！
