@@ -135,6 +135,14 @@ jobs:
     - name: Check Space Usage
       if: (!cancelled())
       run: df -hT
+      
+    - name: Clean Up Build Temporary Files
+      if: steps.compile.outputs.status == 'success'
+      run: |
+        cd $OPENWRT_PATH
+        rm -rf build_dir staging_dir tmp dl || true  # 删除编译临时文件
+        echo "Disk space after cleanup:"
+        df -hT
 
     - name: Upload Bin Directory
       if: steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true'
@@ -150,7 +158,7 @@ jobs:
         github_token: ${{ secrets.GH_TOKEN }}
         publish_dir: ${{ env.OPENWRT_PATH }}/bin
         publish_branch: gh-pages
-        destination_dir: releases/23.05  # 使用luci版本作为子目录
+        #destination_dir: releases/23.05  # 使用luci版本作为子目录
         user_name: 'github-actions[bot]'
         user_email: 'github-actions[bot]@users.noreply.github.com'
         commit_message: 'Update OpenWrt repository files - ${{ env.FILE_DATE }}'
