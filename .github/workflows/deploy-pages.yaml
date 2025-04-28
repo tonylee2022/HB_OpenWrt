@@ -1,0 +1,115 @@
+name: Deploy OpenWrt Packages to GitHub Pages
+
+on:
+  workflow_dispatch:
+    inputs:
+      artifact_name:
+        description: 'Artifact 名称（要下载的软件包）'
+        required: true
+        type: string
+        default: 'lede23.05-bin'
+      run_id:
+        description: '构建 Artifact 的工作流 Run ID'
+        required: true
+        type: string
+        default: '14701961294'
+      version:
+        description: 'OpenWrt 发布版本号（如 23.05）'
+        required: true
+        type: string
+        default: '23.05'
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Clean Up Disk Space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+          sudo rm -rf /tmp/* /var/cache/* || true
+          df -hT
+
+      - name: Download OpenWrt Artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ inputs.artifact_name }}
+          run-id: ${{ inputs.run_id }}
+          path: ./temp-bin
+          github-token: ${{ secrets.GH_TOKEN }}
+
+      - name: Prepare directory structure
+        run: |
+          mkdir -p ./bin/releases/${{ inputs.version }}
+          mv ./temp-bin/* ./bin/releases/${{ inputs.version }}/ || true
+          rm -rf ./temp-bin
+          echo "当前 bin 目录结构："
+          tree ./bin || ls -R ./bin
+
+      - name: Generate recursive index.html
+        run: |
+          #!/usr/bin/env bash
+          set -e
+          cd ./bin
+          find . -type d | while read dir; do
+            cd "$dir"
+            echo "生成 $dir/index.html"
+            cat <<EOF > index.html
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>目录 - ${PWD##*/}</title>
+</head>
+<body>
+  <h1>目录 - ${PWD##*/}</h1>
+  <ul>
+EOF
+            for file in *; do
+              if [ "$file" != "index.html" ]; then
+                if [ -d "$file" ]; then
+                  echo "  <li>[目录] <a href=\"$file/index.html\">$file/</a></li>" >> index.html
+                else
+                  echo "  <li><a href=\"$file\">$file</a></li>" >> index.html
+                fi
+              fi
+            done
+            cat <<EOF >> index.html
+  </ul>
+</body>
+</html>
+EOF
+            cd - >/dev/null
+          done
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v3
+
+      - name: Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: ./bin
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v1
+
+      - name: Notify Deploy Status
+        if: always()
+        uses: appleboy/telegram-action@v0.3.0
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          message: |
+            🚀 OpenWrt 发布完成！
+            状态: ${{ job.status }}
+            仓库: ${{ github.repository }}
+            版本: ${{ inputs.version }}
+            Pages 地址: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/releases/${{ inputs.version }}/
