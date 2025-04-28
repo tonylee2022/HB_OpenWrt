@@ -6,12 +6,16 @@ on:
         description: 'Name of the Artifact to download'
         required: true
         type: string
-        default: 'lede-bin-x86-64-2025.04.27.23.07'
+        default: 'lede23.05-bin'
       run_id:
         description: 'Run ID of the workflow that uploaded the Artifact'
         required: true
         type: string
-        default: '14691847599'
+        default: '14701961294'
+permissions:
+  contents: write
+  pages: write
+  id-token: write
 
 jobs:
   Deploy:
@@ -60,7 +64,6 @@ jobs:
         user_name: 'github-actions[bot]'
         user_email: 'github-actions[bot]@users.noreply.github.com'
         commit_message: 'Update OpenWrt repository files - ${{ inputs.artifact_name }}'
-        exclude_assets: '*.tar.xz, *.img.gz, *.tar.gz, *.zip, *.bin, *.img'
         
     - name: Notify on Deploy Status
       if: always()
