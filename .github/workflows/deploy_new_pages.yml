@@ -19,6 +19,11 @@ on:
         type: string
         default: '23.05'
 
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
 jobs:
   deploy:
     runs-on: ubuntu-22.04
@@ -40,6 +45,7 @@ jobs:
           github-token: ${{ secrets.GH_TOKEN }}
           #repository: tonylee2022/HB_OpenWrt  # 替换为您的实际仓库
           run-id: ${{ inputs.run_id }}
+          path: ./temp-bin
 
       - name: Prepare directory structure
         run: |
@@ -89,12 +95,12 @@ jobs:
         uses: actions/configure-pages@v5
 
       - name: Upload Pages Artifact
-        uses: actions/upload-pages-artifact@v3.0.1
+        uses: actions/upload-pages-artifact@v3
         with:
           path: ./bin
 
       - name: Deploy to GitHub Pages
-        uses: actions/deploy-pages@v4.0.5
+        uses: actions/deploy-pages@v4
 
       - name: Notify Deploy Status
         if: always()
