@@ -64,34 +64,20 @@ jobs:
           cd ./bin
           find . -type d | while read dir; do
             cd "$dir"
-            echo "生成 $dir/index.html"
-            cat <<EOF > index.html
-            <!DOCTYPE html>
-            <html lang="zh-CN">
-            <head>
-              <meta charset="UTF-8">
-              <title>目录 - ${PWD##*/}</title>
-            </head>
-            <body>
-            <h1>目录 - ${PWD##*/}</h1>
-            <ul>
-          EOF
-            for file in *; do
-              if [ "$file" != "index.html" ]; then
-                if [ -d "$file" ]; then
-                  echo "  <li>[目录] <a href=\"$file/index.html\">$file/</a></li>" >> index.html
-                else
-                  echo "  <li><a href=\"$file\">$file</a></li>" >> index.html
-                fi
+            title_name=$(basename "$PWD")
+            echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'"$title_name"'</title></head><body><h1>'"$title_name"'</h1><ul>' > index.html
+            [ "$dir" != "." ] && echo '<li><a href="../index.html">返回上一层目录</a></li>' >> index.html
+            for f in *; do
+              [ "$f" != "index.html" ] && \
+              if [ -d "$f" ]; then
+                echo '<li>[目录] <a href="'$f'/index.html">'$f'/</a></li>' >> index.html
+              else
+                echo '<li><a href="'$f'">'$f'</a></li>' >> index.html
               fi
             done
-            cat <<EOF >> index.html
-          </ul>
-          </body>
-          </html>
-          EOF
+            echo '</ul></body></html>' >> index.html
             cd - >/dev/null
-          done
+          done         
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
