@@ -76,9 +76,9 @@ jobs:
                 size=$(stat -c '%s' "$f")
                 # 文件名过长时截断并加“>”
                 if [ ${#f} -gt 50 ]; then
-                  f_display="${f:0:49}>"
+                  f_display=${f:0:49}'>'
                 else
-                  f_display="$f"
+                  f_display=$f
                 fi
                 # 输出：文件名（宽度50），时间，大小右对齐10位
                 printf '<a href="%s">%-50s</a> %s %10d\n' "$f" "$f_display" "$mod_time" "$size"
