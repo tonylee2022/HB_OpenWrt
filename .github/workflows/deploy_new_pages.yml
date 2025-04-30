@@ -83,9 +83,11 @@ jobs:
                 else
                   f_display=$f
                 fi
-                  
-                # 打印文件信息
-                printf '<a href="%s">%s</a>%-50s %-15s %15d\n' "$f" "$f_display" "$mod_time" "$size" >> index.html
+                # 计算需要填充的空格数
+                padding=$(printf '%*s' $((50 - display_len)) '')
+          
+                # 打印文件信息，确保日期列对齐
+                printf '<a href="%s">%s</a>%s %-15s %15d\n' "$f" "$f_display" "$padding" "$mod_time" "$size" >> index.html
               fi
             done
               echo '</pre><hr></body></html>' >> index.html
