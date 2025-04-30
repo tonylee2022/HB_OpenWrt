@@ -57,40 +57,40 @@ jobs:
           tree ./bin || ls -R ./bin
 
       - name: Generate recursive index.html
-          run: |
-           #!/usr/bin/env bash
-           set -e
-           cd ./bin
-           find . -type d | while read dir; do
-             cd "$dir"
-             title_name=$(basename "$PWD")
-             echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'"$title_name"'</title></head><body><h1>Index of /'"$dir"'</h1><hr><pre><a href="../index.html">../</a>' > index.html
-             for f in *; do
-               [ "$f" != "index.html" ] && \
-               if [ -d "$f" ]; then
-                 # 对于目录，链接长度与文件名长度一致
-                 printf '<a href="%s/index.html">%s/</a>                                                  -\n' "$f" "$f" >> index.html
-               else
-                 size=$(stat -c %s "$f")
-                 mod_time=$(stat -c %y "$f" | cut -d' ' -f1 | cut -d'-' -f1-2 | tr '-' '/')$(stat -c %y "$f" | cut -d' ' -f2 | cut -d':' -f1-2)
-                 # 计算文件名长度
-                 f_len=${#f}
-                 # 如果文件名长度超过50，截断并用>表示
-                 if [ $f_len -gt 50 ]; then
-                   f_display=${f:0:49}'>'
-                   padding=''
-                 else
-                   f_display=$f
-                   # 计算需要填充的空格数
-                   padding=$(printf '%*s' $((50 - f_len)) '')
-                 fi
-                 # 打印文件信息，确保日期列对齐
-                 printf '<a href="%s">%s</a>%s %-15s %15d\n' "$f" "$f_display" "$padding" "$mod_time" "$size" >> index.html
-               fi
-             done
-             echo '</pre><hr></body></html>' >> index.html
-             cd - >/dev/null
-           done
+        run: |
+          #!/usr/bin/env bash
+          set -e
+          cd ./bin
+          find . -type d | while read dir; do
+            cd "$dir"
+            title_name=$(basename "$PWD")
+            echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'"$title_name"'</title></head><body><h1>Index of /'"$dir"'</h1><hr><pre><a href="../index.html">../</a>' > index.html
+            for f in *; do
+              [ "$f" != "index.html" ] && \
+              if [ -d "$f" ]; then
+                # 对于目录，链接长度与文件名长度一致
+                printf '<a href="%s/index.html">%s/</a>                                                  -\n' "$f" "$f" >> index.html
+              else
+                size=$(stat -c %s "$f")
+                mod_time=$(stat -c %y "$f" | cut -d' ' -f1 | cut -d'-' -f1-2 | tr '-' '/')$(stat -c %y "$f" | cut -d' ' -f2 | cut -d':' -f1-2)
+                # 计算文件名长度
+                f_len=${#f}
+                # 如果文件名长度超过50，截断并用>表示
+                if [ $f_len -gt 50 ]; then
+                  f_display=${f:0:49}'>'
+                  padding=''
+                else
+                  f_display=$f
+                  # 计算需要填充的空格数
+                  padding=$(printf '%*s' $((50 - f_len)) '')
+                fi
+                # 打印文件信息，确保日期列对齐
+                printf '<a href="%s">%s</a>%s %-15s %15d\n' "$f" "$f_display" "$padding" "$mod_time" "$size" >> index.html
+              fi
+            done
+            echo '</pre><hr></body></html>' >> index.html
+            cd - >/dev/null
+          done
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
