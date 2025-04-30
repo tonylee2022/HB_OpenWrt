@@ -36,7 +36,6 @@ jobs:
 
       - name: Clean Up Disk Space
         run: |
-          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
           sudo rm -rf /tmp/* /var/cache/* || true
           df -hT
 
