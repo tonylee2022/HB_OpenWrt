@@ -4,20 +4,20 @@ on:
   workflow_dispatch:
     inputs:
       artifact_name:
-        description: 'Artifact 名称（要下载的软件包）'
+        description: "Artifact 名称（要下载的软件包）"
         required: true
         type: string
-        default: 'lede23.05-bin'
+        default: "lede23.05-bin"
       run_id:
-        description: '构建 Artifact 的工作流 Run ID'
+        description: "构建 Artifact 的工作流 Run ID"
         required: true
         type: string
-        default: '14701961294'
+        default: "14701961294"
       version:
-        description: 'OpenWrt 发布版本号（如 23.05）'
+        description: "OpenWrt 发布版本号（如 23.05）"
         required: true
         type: string
-        default: '23.05'
+        default: "23.05"
 
 permissions:
   contents: write
@@ -27,7 +27,7 @@ permissions:
 jobs:
   deploy:
     environment:
-      name: github-pages 
+      name: github-pages
     runs-on: ubuntu-22.04
 
     steps:
@@ -41,7 +41,7 @@ jobs:
           df -hT
 
       - name: Download OpenWrt Build Artifact
-        uses: actions/download-artifact@v4  # 使用 v3 确保兼容性
+        uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.artifact_name }}
           github-token: ${{ secrets.GH_TOKEN }}
@@ -65,19 +65,21 @@ jobs:
           find . -type d | while read dir; do
             cd "$dir"
             title_name=$(basename "$PWD")
-            echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'"$title_name"'</title></head><body><h1>'"$title_name"'</h1><ul>' > index.html
-            [ "$dir" != "." ] && echo '<li><a href="../index.html">返回上一层目录</a></li>' >> index.html
-            for f in *; do
-              [ "$f" != "index.html" ] && \
+            echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'"$title_name"'</title></head><body><h1>Index of /'"$dir"'</h1><hr><pre><a href="../index.html">../</a>' > index.html
+              [ "$dir" != "." ] && echo '<a href="../index.html">../</a>' >> index.html
+              for f in *; do
+                [ "$f" != "index.html" ] && \
               if [ -d "$f" ]; then
-                echo '<li>[目录] <a href="'$f'/index.html">'$f'/</a></li>' >> index.html
-              else
-                echo '<li><a href="'$f'">'$f'</a></li>' >> index.html
-              fi
-            done
-            echo '</ul></body></html>' >> index.html
+                  echo '<a href="'$f'/index.html">'$f'/</a>                    -' >> index.html
+                else
+                  size=$(stat -f %z "$f")
+                  mod_time=$(stat -f %Sm -t %Y-%m-%d %H:%M "$f")
+                  echo '<a href="'$f'">'$f'</a>                    '$mod_time' '$size >> index.html
+                fi
+              done
+              echo '</pre><hr></body></html>' >> index.html
             cd - >/dev/null
-          done         
+          done
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
