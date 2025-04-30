@@ -66,28 +66,22 @@ jobs:
             title_name=$(basename "$PWD")
             echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'"$title_name"'</title></head><body><h1>Index of /'"$dir"'</h1><hr><pre><a href="../index.html">../</a>' > index.html
             for f in *; do
-              [ "$f" != "index.html" ] && \
+              [ "$f" = "index.html" ] && continue
               if [ -d "$f" ]; then
-                # 对于目录，链接长度与文件名长度一致
-                echo '<a href="'$f'/index.html">'$f'/</a>                                                  -' >> index.html
+                # 目录：名称后加“/”，固定宽度50字符，末尾显示“-”
+                printf '<a href="%s/index.html">%-50s</a>  -\n' "$f" "$f/"
               else
-                size=$(stat -c %s "$f")
-                mod_time=$(stat -c %y "$f" | cut -d' ' -f1 | cut -d'-' -f1-2 | tr '-' '/')$(stat -c %y "$f" | cut -d' ' -f2 | cut -d':' -f1-2)
-                  
-                # 计算文件名长度
-                f_len=${#f}
-                  
-                # 如果文件名长度超过50，截断并用>表示
-                if [ $f_len -gt 50 ]; then
-                  f_display=${f:0:49}'>'
+                # 文件：获取修改时间和大小
+                mod_time=$(stat -c '%Y-%m-%d %H:%M' "$f")
+                size=$(stat -c '%s' "$f")
+                # 文件名过长时截断并加“>”
+                if [ ${#f} -gt 50 ]; then
+                  f_display="${f:0:49}>"
                 else
-                  f_display=$f
+                  f_display="$f"
                 fi
-                # 计算需要填充的空格数
-                padding=$(printf '%*s' $((50 - display_len)) '')
-          
-                # 打印文件信息，确保日期列对齐
-                printf '<a href="%s">%s</a>%s %-15s %15d\n' "$f" "$f_display" "$padding" "$mod_time" "$size" >> index.html
+                # 输出：文件名（宽度50），时间，大小右对齐10位
+                printf '<a href="%s">%-50s</a> %s %10d\n' "$f" "$f_display" "$mod_time" "$size"
               fi
             done
               echo '</pre><hr></body></html>' >> index.html
