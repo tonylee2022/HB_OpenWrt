@@ -66,18 +66,18 @@ jobs:
             cd "$dir"
             title_name=$(basename "$PWD")
             echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'"$title_name"'</title></head><body><h1>Index of /'"$dir"'</h1><hr><pre><a href="../index.html">../</a>' > index.html
-              [ "$dir" != "." ] && echo '<a href="../index.html">../</a>' >> index.html
-              for f in *; do
-                [ "$f" != "index.html" ] && \
+            [ "$dir" != "." ] && echo '<a href="../index.html">../</a>' >> index.html
+            for f in *; do
+              [ "$f" != "index.html" ] && \
               if [ -d "$f" ]; then
-                  echo '<a href="'$f'/index.html">'$f'/</a>                    -' >> index.html
-                else
-                  size=$(stat -c %s "$f")
-                  mod_time=$(stat -c %y "$f" | cut -d' ' -f1-2)
-                  echo '<a href="'$f'">'$f'</a>                    '$size' '$mod_time >> index.html
-                fi
-              done
-              echo '</pre><hr></body></html>' >> index.html
+                echo '<a href="'$f'/index.html">'$f'/</a>                                                  -' >> index.html
+              else
+                size=$(stat -c %s "$f")
+                mod_time=$(stat -c %y "$f" | cut -d' ' -f1-2)
+                printf '<a href="'$f'">%-30s</a> %-19s %10d\n' "$f" "$mod_time" "$size" >> index.html
+              fi
+            done
+            echo '</pre><hr></body></html>' >> index.html
             cd - >/dev/null
           done
 
