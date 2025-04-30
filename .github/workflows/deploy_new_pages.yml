@@ -73,8 +73,8 @@ jobs:
                   echo '<a href="'$f'/index.html">'$f'/</a>                    -' >> index.html
                 else
                   size=$(stat -c %s "$f")
-                  mod_time=$(stat -f %Sm -t %Y-%m-%d %H:%M "$f")
-                  echo '<a href="'$f'">'$f'</a>                    '$mod_time' '$size >> index.html
+                  mod_time=$(stat -c %y "$f" | cut -d' ' -f1-2)
+                  echo '<a href="'$f'">'$f'</a>                    '$size' '$mod_time >> index.html
                 fi
               done
               echo '</pre><hr></body></html>' >> index.html
