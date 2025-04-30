@@ -69,16 +69,30 @@ jobs:
             for f in *; do
               [ "$f" != "index.html" ] && \
               if [ -d "$f" ]; then
+                # 对于目录，链接长度与文件名长度一致
                 echo '<a href="'$f'/index.html">'$f'/</a>                                                  -' >> index.html
               else
                 size=$(stat -c %s "$f")
                 mod_time=$(stat -c %y "$f" | cut -d' ' -f1 | cut -d'-' -f1-2 | tr '-' '/')$(stat -c %y "$f" | cut -d' ' -f2 | cut -d':' -f1-2)
-                printf '<a href="'$f'">%-50s</a> %-15s %15d\n' "$f" "$mod_time" "$size" >> index.html
+                  
+                # 计算文件名长度
+                f_len=${#f}
+                  
+                # 如果文件名长度超过50，截断并用>表示
+                if [ $f_len -gt 50 ]; then
+                  f_display=${f:0:49}>
+                else
+                  f_display=$f
+                fi
+                  
+                # 打印文件信息
+                printf '<a href="'$f'">%-50s</a> %-15s %15d\n' "$f_display" "$mod_time" "$size" >> index.html
               fi
             done
-            echo '</pre><hr></body></html>' >> index.html
-            cd - >/dev/null
+              echo '</pre><hr></body></html>' >> index.html
+              cd - >/dev/null
           done
+ 
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
