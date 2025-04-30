@@ -85,7 +85,7 @@ jobs:
                 fi
                   
                 # 打印文件信息
-                printf '<a href="'$f'">%-50s</a> %-15s %15d\n' "$f_display" "$mod_time" "$size" >> index.html
+                printf '<a href="'$f'">%-50s</a> %-15s %15d\n' "$f_display" "" "$mod_time" "$size" >> index.html
               fi
             done
               echo '</pre><hr></body></html>' >> index.html
