@@ -149,94 +149,22 @@ jobs:
       if: steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true'
       uses: actions/upload-artifact@v4
       with:
-        name: lede23.05-bin
+        name: lede${{ env.DEFAULT_VERSION }}-bin
         path: |
-          $OPENWRT_PATH/bin/packages/
-          $OPENWRT_PATH/bin/targets/x86/64/packages/
-
-    - name: Prepare directory structure
-      run: |
-          mkdir -p ./bin/releases/${{ env.DEFAULT_VERSION }}
-          cp $OPENWRT_PATH/bin/packages/ ./bin/releases/${{ env.DEFAULT_VERSION }}/ || true
-          cp $OPENWRT_PATH/bin/targets/*/*/packages/ ./bin/releases/${{ env.DEFAULT_VERSION }}/ || true
-          echo "当前 bin 目录结构："
-          tree ./bin || ls -R ./bin
-
-    - name: Generate recursive index.html
-      run: |
-          #!/usr/bin/env bash
-          set -e
-          cd ./bin/releases
-          find . -type d | while read dir; do
-            cd "$dir"
-            title_name=$(basename "$PWD")
-            echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'"$title_name"'</title></head><body><h1>Index of /'"$dir"'</h1><hr><pre><a href="../index.html">../</a>' > index.html
-            for f in *; do
-              [ "$f" != "index.html" ] && \
-              if [ -d "$f" ]; then
-                # 对于目录，链接长度与文件名长度一致
-                printf '<a href="%s/index.html">%s/</a>                                                  -\n' "$f" "$f" >> index.html
-              else
-                size=$(stat -c %s "$f")
-                mod_time=$(stat -c %y "$f" | cut -d' ' -f1 | cut -d'-' -f1-2 | tr '-' '/')$(stat -c %y "$f" | cut -d' ' -f2 | cut -d':' -f1-2)
-                # 计算文件名长度
-                f_len=${#f}
-                # 如果文件名长度超过50，截断并用>表示
-                if [ $f_len -gt 50 ]; then
-                  f_display=${f:0:49}'>'
-                  padding=''
-                else
-                  f_display=$f
-                  # 计算需要填充的空格数
-                  padding=$(printf '%*s' $((50 - f_len)) '')
-                fi
-                # 打印文件信息，确保日期列对齐
-                printf '<a href="%s">%s</a>%s %-15s %15d\n' "$f" "$f_display" "$padding" "$mod_time" "$size" >> index.html
-              fi
-            done
-            echo '</pre><hr></body></html>' >> index.html
-            cd - >/dev/null
-          done
-
-    - name: Configure Pages
-      uses: actions/configure-pages@v5
-
-    - name: Upload Pages Artifact
-      uses: actions/upload-pages-artifact@v3
-      with:
-        path: ./bin/releases
-
-    - name: Deploy to GitHub Pages
-      uses: actions/deploy-pages@v4
-    
-    - name: Notify Deploy Status
-      if: always()
-      uses: appleboy/telegram-action@master
-      with:
-        to: ${{ secrets.TELEGRAM_CHAT_ID }}
-        token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-        message: |
-            🚀 OpenWrt 软件源发布完成！
-            状态: ${{ job.status }}
-            仓库: ${{ github.repository }}
-            版本: ${{ env.DEFAULT_VERSION }}
-            架构: ${{ env.DEVICE_TARGET }}-${{ env.DEVICE_SUBTARGET }}
-            Pages 地址: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/releases/${{ env.DEFAULT_VERSION }}/
-    
-    - name: Ddelete-bin-releases
-      run: |
-        rm -rf ./bin/releases
-        echo "删除 bin/releases目录"
-            
+          ${{ env.DEFAULT_VERSION }}/bin/packages/
+          ${{ env.DEFAULT_VERSION }}/bin/targets/x86/64/packages/
+          
     - name: Organize Files
       if: steps.compile.outputs.status == 'success'
       run: |
         cd $OPENWRT_PATH/bin/targets/*/*
         cat sha256sums
         cp $OPENWRT_PATH/.config build.config
-        mv -f $OPENWRT_PATH/bin/packages/*/*/*.ipk packages
-        tar -zcf Packages.tar.gz packages
-        rm -rf packages feeds.buildinfo version.buildinfo
+        mkdir -p temp-packages
+        cp $OPENWRT_PATH/bin/packages/*/*/*.ipk temp-packages
+        cp $OPENWRT_PATH/bin/targets/*/*/*/*.ipk temp-packages
+        tar -zcf Packages.tar.gz temp-packages
+        rm -rf temp-packages feeds.buildinfo version.buildinfo
         echo "KERNEL=$(cat *.manifest | grep ^kernel | cut -d- -f2 | tr -d ' ')" >> $GITHUB_ENV
         echo "FIRMWARE_PATH=$PWD" >> $GITHUB_ENV
 
@@ -254,7 +182,7 @@ jobs:
           ### 📒 固件信息
           - 💻 平台架构: ${{ env.DEVICE_TARGET }}-${{ env.DEVICE_SUBTARGET }}
           - ⚽ 固件源码: ${{ env.REPO_URL }}
-          - 💝 源码分支: ${{ env.DEFAULT_VERSION }} ${{ env.REPO_BRANCH }}
+          - 💝 源码分支: ${{ env.REPO_BRANCH }} ${{ env.DEFAULT_VERSION }}
           - 🚀 内核版本: ${{ env.KERNEL }}
           - 🌐 默认地址: 192.168.5.1
           - 🔑 默认密码: password
@@ -264,6 +192,81 @@ jobs:
           - ${{ env.COMMIT_DATE }}
           - ${{ env.COMMIT_MESSAGE }}
           - ${{ env.COMMIT_HASH }}
+
+    - name: Prepare directory structure
+      run: |
+        cd $OPENWRT_PATH
+        # 先列出大于100M的文件
+        find $OPENWRT_PATH/bin/ -type f -size +100M -print
+        # 然后删除
+        find $OPENWRT_PATH/bin/ -type f -size +100M -exec rm {} \; || echo "删除操作可能失败，请检查日志"
+        mkdir -p ./releases/${{ env.DEFAULT_VERSION }}
+        mv ./bin  ./releases/${{ env.DEFAULT_VERSION }}
+        echo "当前 releases 目录结构："
+        tree ./releases || ls -R ./releases
+
+    - name: Generate recursive index.html
+      run: |
+        #!/usr/bin/env bash
+        set -e
+        cd ./releases
+        find . -type d | while read dir; do
+          cd "$dir"
+          title_name=$(basename "$PWD")
+          echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'"$title_name"'</title></head><body><h1>Index of /'"$dir"'</h1><hr><pre><a href="../index.html">../</a>' > index.html
+          for f in *; do
+            [ "$f" != "index.html" ] && \
+            if [ -d "$f" ]; then
+              # 对于目录，链接长度与文件名长度一致
+              printf '<a href="%s/index.html">%s/</a>                                                  -\n' "$f" "$f" >> index.html
+            else
+              size=$(stat -c %s "$f")
+              mod_time=$(stat -c %y "$f" | cut -d' ' -f1 | cut -d'-' -f1-2 | tr '-' '/')$(stat -c %y "$f" | cut -d' ' -f2 | cut -d':' -f1-2)
+              # 计算文件名长度
+              f_len=${#f}
+              # 如果文件名长度超过50，截断并用>表示
+              if [ $f_len -gt 50 ]; then
+                f_display=${f:0:49}'>'
+                padding=''
+              else
+                f_display=$f
+                # 计算需要填充的空格数
+                padding=$(printf '%*s' $((50 - f_len)) '')
+              fi
+              # 打印文件信息，确保日期列对齐
+              printf '<a href="%s">%s</a>%s %-15s %15d\n' "$f" "$f_display" "$padding" "$mod_time" "$size" >> index.html
+            fi
+          done
+          echo '</pre><hr></body></html>' >> index.html
+          cd - >/dev/null
+        done
+
+    - name: Configure Pages
+      uses: actions/configure-pages@v5
+
+    - name: Upload Pages Artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: ./releases
+
+    - name: Deploy to GitHub Pages
+      uses: actions/deploy-pages@v4
+    
+    - name: Notify Deploy Status
+      if: always()
+      uses: appleboy/telegram-action@master
+      with:
+        to: ${{ secrets.TELEGRAM_CHAT_ID }}
+        token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        message: |
+            🚀 OpenWrt 软件源发布完成！
+            状态: ${{ job.status }}
+            仓库: ${{ github.repository }}
+            版本: ${{ env.DEFAULT_VERSION }}
+            架构: ${{ env.DEVICE_TARGET }}-${{ env.DEVICE_SUBTARGET }}
+            Pages 地址: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/releases/${{ env.DEFAULT_VERSION }}/
+            
+
 
     - name: Remove old Releases
       uses: dev-drprasad/delete-older-releases@master
