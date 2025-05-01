@@ -7,10 +7,10 @@ sed -i 's/192\.168\.1\.1/192\.168\.5\.1/g' package/base-files/luci2/bin/config_g
 # sed -i 's/$1$V4UetPzk$CYXluq4wUazHjmCDBCqXF.//g' package/lean/default-settings/files/zzz-default-settings
 
 # 禁用版本信息修改
-sed -i '/^sed -i '\''\/DISTRIB_REVISION\/d'\'' \/etc\/openwrt_release$/s/^/#/' package/lean/default-settings/files/zzz-default-settings
-sed -i '/^echo "DISTRIB_REVISION='\''R25.4.145'\''" >> \/etc\/openwrt_release$/s/^/#/' package/lean/default-settings/files/zzz-default-settings
-sed -i '/^sed -i '\''\/DISTRIB_DESCRIPTION\/d'\'' \/etc\/openwrt_release$/s/^/#/' package/lean/default-settings/files/zzz-default-settings
-sed -i '/^echo "DISTRIB_DESCRIPTION='\''LEDE '\''" >> \/etc\/openwrt_release$/s/^/#/' package/lean/default-settings/files/zzz-default-settings
+# sed -i '/^sed -i '\''\/DISTRIB_REVISION\/d'\'' \/etc\/openwrt_release$/s/^/#/' package/lean/default-settings/files/zzz-default-settings
+# sed -i '/^echo "DISTRIB_REVISION='\''R25.4.145'\''" >> \/etc\/openwrt_release$/s/^/#/' package/lean/default-settings/files/zzz-default-settings
+# sed -i '/^sed -i '\''\/DISTRIB_DESCRIPTION\/d'\'' \/etc\/openwrt_release$/s/^/#/' package/lean/default-settings/files/zzz-default-settings
+# sed -i '/^echo "DISTRIB_DESCRIPTION='\''LEDE '\''" >> \/etc\/openwrt_release$/s/^/#/' package/lean/default-settings/files/zzz-default-settings
 
 # 更改默认 Shell 为 zsh
 sed -i 's/\/bin\/ash/\/usr\/bin\/zsh/g' package/base-files/files/etc/passwd
