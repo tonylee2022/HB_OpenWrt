@@ -1,4 +1,4 @@
-name: X86_64 OpenWrt
+name: make OpenWrt X86_64 deploy pages
 
 on:
   workflow_dispatch:
