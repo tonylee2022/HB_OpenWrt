@@ -162,11 +162,12 @@ jobs:
         cp $OPENWRT_PATH/.config build.config
         rm -rf feeds.buildinfo version.buildinfo
         echo "KERNEL=$(cat *.manifest | grep ^kernel | cut -d- -f2 | tr -d ' ')" >> $GITHUB_ENV
-        echo "FIRMWARE_PATH=$PWD" >> $GITHUB_ENV
+        export FIRMWARE_PATH=$PWD  # 立即在当前 Shell 中生效
+        echo "FIRMWARE_PATH=$FIRMWARE_PATH" >> $GITHUB_ENV  # 写入后续步骤环境变量
         mkdir -p $OPENWRT_PATH/temp-packages
         cp $OPENWRT_PATH/bin/packages/*/*/*.ipk $OPENWRT_PATH/temp-packages/ || true
         cp $OPENWRT_PATH/bin/targets/*/*/*/*.ipk $OPENWRT_PATH/temp-packages/ || true
-        tar -zcf $FIRMWARE_PATH/Packages.tar.gz $OPENWRT_PATH/temp-packages
+        tar -zcf "$FIRMWARE_PATH/Packages.tar.gz" "$OPENWRT_PATH/temp-packages"  # 使用双引号避免路径空格问题
         rm -rf $OPENWRT_PATH/temp-packages
         
     - name: Upload Firmware To Release
@@ -226,9 +227,9 @@ jobs:
         find $OPENWRT_PATH/bin/ -type f -size +100M -print
         # 然后删除
         find $OPENWRT_PATH/bin/ -type f -size +100M -exec rm {} \; || echo "删除操作可能失败，请检查日志"
-        mkdir -p $OPENWRT_PATH/releases/${{ env.DEFAULT_VERSION }}
-        mv $OPENWRT_PATH/bin/packages  $OPENWRT_PATH/releases/${{ env.DEFAULT_VERSION }}
-        mv $OPENWRT_PATH/bin/targets  $OPENWRT_PATH/releases/${{ env.DEFAULT_VERSION }}
+        mkdir -p "$OPENWRT_PATH/releases/$DEFAULT_VERSION"
+        mv "$OPENWRT_PATH/bin/packages" "$OPENWRT_PATH/releases/$DEFAULT_VERSION"
+        mv "$OPENWRT_PATH/bin/targets"  "$OPENWRT_PATH/releases/$DEFAULT_VERSION"
         echo "当前 releases 目录结构："
         tree $OPENWRT_PATH/releases || ls -R $OPENWRT_PATH/releases
 
