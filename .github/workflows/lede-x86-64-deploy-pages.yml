@@ -10,7 +10,7 @@ env:
   DIY_SCRIPT: diy-script.sh
   CLASH_KERNEL: amd64
   CACHE_TOOLCHAIN: true
-  UPLOAD_BIN_DIR: true
+  UPLOAD_BIN_DIR: false
   FIRMWARE_RELEASE: true
   FIRMWARE_TAG: X86_64
   TZ: Asia/Shanghai
@@ -151,8 +151,8 @@ jobs:
       with:
         name: lede${{ env.DEFAULT_VERSION }}-bin
         path: |
-          ${{ env.DEFAULT_VERSION }}/bin/packages/
-          ${{ env.DEFAULT_VERSION }}/bin/targets/x86/64/packages/
+          ${{ env.OPENWRT_PATH }}/bin/packages/
+          ${{ env.OPENWRT_PATH }}/bin/targets/x86/64/packages/
           
     - name: Organize Files
       if: steps.compile.outputs.status == 'success'
@@ -161,15 +161,14 @@ jobs:
         cat sha256sums
         cp $OPENWRT_PATH/.config build.config
         rm -rf feeds.buildinfo version.buildinfo
+        echo "KERNEL=$(cat *.manifest | grep ^kernel | cut -d- -f2 | tr -d ' ')" >> $GITHUB_ENV
+        echo "FIRMWARE_PATH=$PWD" >> $GITHUB_ENV
         mkdir -p $OPENWRT_PATH/temp-packages
         cp $OPENWRT_PATH/bin/packages/*/*/*.ipk $OPENWRT_PATH/temp-packages/ || true
         cp $OPENWRT_PATH/bin/targets/*/*/*/*.ipk $OPENWRT_PATH/temp-packages/ || true
-        tar -zcf $OPENWRT_PATH/Packages.tar.gz -c $OPENWRT_PATH/temp-packages
-        mv $OPENWRT_PATH/Packages.tar.gz $OPENWRT_PATH//bin/targets/*/*/
+        tar -zcf $FIRMWARE_PATH/Packages.tar.gz $OPENWRT_PATH/temp-packages
         rm -rf $OPENWRT_PATH/temp-packages
-        echo "KERNEL=$(cat *.manifest | grep ^kernel | cut -d- -f2 | tr -d ' ')" >> $GITHUB_ENV
-        echo "FIRMWARE_PATH=$PWD" >> $GITHUB_ENV
-
+        
     - name: Upload Firmware To Release
       if: steps.compile.outputs.status == 'success' && env.FIRMWARE_RELEASE == 'true'
       uses: ncipollo/release-action@v1
@@ -216,7 +215,7 @@ jobs:
           用户名: ${{ github.actor }}
           仓库: ${{ github.repository }}
           固件源码: ${{ env.REPO_URL }}
-          源码分支: ${{ env.DEFAULT_VERSION }} ${{ env.REPO_BRANCH }}
+          源码分支: ${{ env.REPO_BRANCH }} ${{ env.DEFAULT_VERSION }}
           Commit: ${{ github.sha }}
           等待GitHub Pages软件源发布
 
@@ -275,7 +274,7 @@ jobs:
     - name: Upload Pages Artifact
       uses: actions/upload-pages-artifact@v3
       with:
-        path: ./releases
+        path: $OPENWRT_PATH/releases
 
     - name: Deploy to GitHub Pages
       uses: actions/deploy-pages@v4
