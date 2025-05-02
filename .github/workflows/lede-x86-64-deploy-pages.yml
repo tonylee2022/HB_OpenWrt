@@ -160,11 +160,13 @@ jobs:
         cd $OPENWRT_PATH/bin/targets/*/*
         cat sha256sums
         cp $OPENWRT_PATH/.config build.config
-        mkdir -p temp-packages
-        cp $OPENWRT_PATH/bin/packages/*/*/*.ipk temp-packages
-        cp $OPENWRT_PATH/bin/targets/*/*/*/*.ipk temp-packages
-        tar -zcf Packages.tar.gz temp-packages
-        rm -rf temp-packages feeds.buildinfo version.buildinfo
+        rm -rf feeds.buildinfo version.buildinfo
+        mkdir -p $OPENWRT_PATH/temp-packages
+        cp $OPENWRT_PATH/bin/packages/*/*/*.ipk $OPENWRT_PATH/temp-packages/ || true
+        cp $OPENWRT_PATH/bin/targets/*/*/*/*.ipk $OPENWRT_PATH/temp-packages/ || true
+        tar -zcf $OPENWRT_PATH/Packages.tar.gz -c $OPENWRT_PATH/temp-packages
+        mv $OPENWRT_PATH/Packages.tar.gz $OPENWRT_PATH//bin/targets/*/*/
+        rm -rf $OPENWRT_PATH/temp-packages
         echo "KERNEL=$(cat *.manifest | grep ^kernel | cut -d- -f2 | tr -d ' ')" >> $GITHUB_ENV
         echo "FIRMWARE_PATH=$PWD" >> $GITHUB_ENV
 
