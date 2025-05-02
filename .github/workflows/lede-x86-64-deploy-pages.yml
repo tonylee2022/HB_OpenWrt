@@ -227,16 +227,17 @@ jobs:
         find $OPENWRT_PATH/bin/ -type f -size +100M -print
         # 然后删除
         find $OPENWRT_PATH/bin/ -type f -size +100M -exec rm {} \; || echo "删除操作可能失败，请检查日志"
-        mkdir -p ./releases/${{ env.DEFAULT_VERSION }}
-        mv ./bin  ./releases/${{ env.DEFAULT_VERSION }}
+        mkdir -p $OPENWRT_PATH/releases/${{ env.DEFAULT_VERSION }}
+        mv $OPENWRT_PATH/bin/packages  $OPENWRT_PATH/releases/${{ env.DEFAULT_VERSION }}
+        mv $OPENWRT_PATH/bin/targets  $OPENWRT_PATH/releases/${{ env.DEFAULT_VERSION }}
         echo "当前 releases 目录结构："
-        tree ./releases || ls -R ./releases
+        tree $OPENWRT_PATH/releases || ls -R $OPENWRT_PATH/releases
 
     - name: Generate recursive index.html
       run: |
         #!/usr/bin/env bash
         set -e
-        cd ./releases
+        cd $OPENWRT_PATH/releases
         find . -type d | while read dir; do
           cd "$dir"
           title_name=$(basename "$PWD")
