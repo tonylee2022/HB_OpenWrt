@@ -222,22 +222,42 @@ jobs:
 
     - name: Prepare directory structure
       run: |
-        cd $OPENWRT_PATH
-        # 先列出大于100M的文件
-        find $OPENWRT_PATH/bin/ -type f -size +100M -print
-        # 然后删除
-        find $OPENWRT_PATH/bin/ -type f -size +100M -exec rm {} \; || echo "删除操作可能失败，请检查日志"
-        mkdir -p "$OPENWRT_PATH/releases/$DEFAULT_VERSION"
-        mv "$OPENWRT_PATH/bin/packages" "$OPENWRT_PATH/releases/$DEFAULT_VERSION"
-        mv "$OPENWRT_PATH/bin/targets"  "$OPENWRT_PATH/releases/$DEFAULT_VERSION"
-        echo "当前 releases 目录结构："
-        tree $OPENWRT_PATH/releases || ls -R $OPENWRT_PATH/releases
+        cd $FIRMWARE_PATH   
+        # 删除指定后缀名的文件
+        echo "删除指定后缀名的文件..."
+        find "$FIRMWARE_PATH" -type f \( -name "*.bin" -o -name "*.img" -o -name "*.img.gz" -o -name "*.tar.gz" -o -name "*.tar.xz" \) -exec rm -v {} + || echo "删除特定后缀文件可能失败，请检查日志"  
+        # 列出大于100MB的文件
+        echo "列出大于100MB的文件..."
+        find "$FIRMWARE_PATH" -type f -size +100M -ls    
+        # 删除大于100MB的文件
+        echo "删除大于100MB的文件..."
+        find "$FIRMWARE_PATH" -type f -size +100M -exec rm -v {} + || echo "删除大文件操作可能失败，请检查日志"    
+        echo "清理完成"
+        # 切换到OPENWRT路径
+        cd "$OPENWRT_PATH" || { echo "错误: 无法进入 $OPENWRT_PATH 目录"; exit 1; }
+        # 创建目录结构
+        mkdir -p "./pages/releases/$DEFAULT_VERSION"
+        # 检查bin目录并移动文件
+        if [ -d "./bin" ] && [ "$(ls -A ./bin 2>/dev/null)" ]; then
+          echo "移动文件从 ./bin/ 到 ./pages/releases/$DEFAULT_VERSION/"
+          mv ./bin/* "./pages/releases/$DEFAULT_VERSION/" || echo "移动文件过程中出现错误"
+        else
+          echo "警告: bin目录不存在或为空，没有文件可移动"
+        fi
+        # 设置PAGES_PATH环境变量
+        cd "./pages" || { echo "错误: 无法进入 pages 目录"; exit 1; }
+        export PAGES_PATH=$PWD
+        echo "设置PAGES_PATH=$PAGES_PATH"
+        echo "PAGES_PATH=$PAGES_PATH" >> $GITHUB_ENV
+        # 显示目录结构
+        echo "当前 pages 目录结构："
+        tree "$PAGES_PATH" || ls -R "$PAGES_PATH"
 
     - name: Generate recursive index.html
       run: |
         #!/usr/bin/env bash
         set -e
-        cd $OPENWRT_PATH/releases
+        cd $PAGES_PATH
         find . -type d | while read dir; do
           cd "$dir"
           title_name=$(basename "$PWD")
@@ -268,6 +288,9 @@ jobs:
           echo '</pre><hr></body></html>' >> index.html
           cd - >/dev/null
         done
+        # 显示目录结构
+        echo "当前 pages 目录结构："
+        tree "$PAGES_PATH" || ls -R "$PAGES_PATH"
 
     - name: Configure Pages
       uses: actions/configure-pages@v5
@@ -275,7 +298,7 @@ jobs:
     - name: Upload Pages Artifact
       uses: actions/upload-pages-artifact@v3
       with:
-        path: $OPENWRT_PATH/releases
+        path: ${{ env.PAGES_PATH }}
 
     - name: Deploy to GitHub Pages
       uses: actions/deploy-pages@v4
