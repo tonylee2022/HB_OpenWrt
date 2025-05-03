@@ -157,6 +157,21 @@ jobs:
         echo "KERNEL=$(cat *.manifest | grep ^kernel | cut -d- -f2 | tr -d ' ')" >> $GITHUB_ENV
         echo "FIRMWARE_PATH=$PWD" >> $GITHUB_ENV
 
+    # 步骤4：设置 SSH 密钥用于同步到 VPS
+    - name: Setup SSH key
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+    # 步骤5：使用 rsync 同步 bin 目录到 VPS
+    - name: Sync bin directory to VPS
+      run: |
+        rsync -avz --progress -e "ssh -i ~/.ssh/id_rsa" $OPENWRT_PATH/bin/ ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ secrets.VPS_TARGET_DIR }}
+        # 可选：同步后在 VPS 上调整权限
+        ssh -i ~/.ssh/id_rsa ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "sudo chown -R www-data:www-data ${{ secrets.VPS_TARGET_DIR }} && sudo chmod -R 755 ${{ secrets.VPS_TARGET_DIR }}"
+
     - name: Upload Firmware To Release
       if: steps.compile.outputs.status == 'success' && env.FIRMWARE_RELEASE == 'true'
       uses: ncipollo/release-action@v1
