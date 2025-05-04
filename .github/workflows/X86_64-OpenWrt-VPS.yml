@@ -85,6 +85,8 @@ jobs:
           echo "DEVICE_TARGET=$DEVICE_TARGET" >> $GITHUB_ENV
           DEVICE_SUBTARGET=$(cat .config | grep CONFIG_TARGET_SUBTARGET | awk -F '"' '{print $2}')
           echo "DEVICE_SUBTARGET=$DEVICE_SUBTARGET" >> $GITHUB_ENV
+          DEFAULT_VERSION=$(awk '/VERSION_NUMBER:=\$\(if/{gsub(/.*,/,""); gsub(/\).*/,""); print}' "./include/version.mk")
+          echo "DEFAULT_VERSION=$DEFAULT_VERSION" >> $GITHUB_ENV
 
       - name: Cache Toolchain
         if: env.CACHE_TOOLCHAIN == 'true'
@@ -140,7 +142,7 @@ jobs:
         run: |
           #!/usr/bin/env bash
           set -e
-          cd $PAGES_PATH/bin
+          cd $OPENWRT_PATH/bin
           # 设置变量
           find . -type d | while read dir; do
             cd "$dir"
@@ -174,7 +176,7 @@ jobs:
           done
           # 显示目录结构
           echo "当前 bin 目录结构："
-          tree "$PAGES_PATH/bin" || ls -R "$PAGES_PATH/bin"
+          tree "$OPENWRT_PATH/bin" || ls -R "$OPENWRT_PATH/bin"
 
       # 步骤4：设置 SSH 密钥用于同步到 VPS
       - name: Setup SSH key
@@ -187,7 +189,7 @@ jobs:
       # 步骤5：使用 rsync 同步 bin 目录到 VPS
       - name: Sync bin directory to VPS
         run: |
-          rsync -avz --progress -e "ssh -i ~/.ssh/id_rsa" $OPENWRT_PATH/bin/ ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ secrets.VPS_TARGET_DIR }}
+          rsync -avz --progress -e "ssh -i ~/.ssh/id_rsa" $OPENWRT_PATH/bin/ ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ secrets.VPS_TARGET_DIR }}/${{ env.DEFAULT_VERSION }}/
           # 可选：同步后在 VPS 上调整权限
           ssh -i ~/.ssh/id_rsa ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "sudo chown -R www-data:www-data ${{ secrets.VPS_TARGET_DIR }} && sudo chmod -R 755 ${{ secrets.VPS_TARGET_DIR }}"
 
@@ -203,6 +205,7 @@ jobs:
             用户名: ${{ github.actor }}
             仓库: ${{ github.repository }}
             固件源码: ${{ env.REPO_URL }}
-            源码分支: 23.05 ${{ env.REPO_BRANCH }}
+            源码分支: ${{ env.REPO_BRANCH }}
+            OpenWrt源码: ${{ env.DEFAULT_VERSION }}
             Commit: ${{ github.sha }}
             编译完成，发布到 VPS！
