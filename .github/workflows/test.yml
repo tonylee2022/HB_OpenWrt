@@ -1,0 +1,38 @@
+name: test deploy VPS
+
+on:
+  workflow_dispatch:
+env:
+  REPO_URL: https://github.com/coolsnowwolf/lede
+  
+jobs:
+  Build:
+    runs-on: ubuntu-22.04
+      
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+          
+      - name: Clone Source Code
+        run: |
+          df -hT $GITHUB_WORKSPACE
+          git clone $REPO_URL -b master openwrt
+          cd openwrt
+          echo "OPENWRT_PATH=$PWD" >> $GITHUB_ENV
+          DEFAULT_VERSION=$(awk '/VERSION_NUMBER:=\$\(if/{gsub(/.*,/,""); gsub(/\).*/,""); print}' "./include/version.mk")
+          echo "DEFAULT_VERSION=$DEFAULT_VERSION" >> $GITHUB_ENV
+          
+      # 步骤4：设置 SSH 密钥用于同步到 VPS
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          # 步骤5：使用 rsync 同步 bin 目录到 VPS
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts      
+          
+      - name: Sync bin directory to VPS
+        run: |
+          rsync -avz --progress -e "ssh -i ~/.ssh/id_rsa" $OPENWRT_PATH ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ secrets.VPS_TARGET_DIR }}${{ env.DEFAULT_VERSION }}/
+          # 可选：同步后在 VPS 上调整权限
+          ssh -i ~/.ssh/id_rsa ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "sudo chown -R www-data:www-data ${{ secrets.VPS_TARGET_DIR }} && sudo chmod -R 755 ${{ secrets.VPS_TARGET_DIR }}"
