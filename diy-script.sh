@@ -87,10 +87,10 @@ sed -i '$i uci commit nlbwmon' package/lean/default-settings/files/zzz-default-s
 chmod 755 package/luci-app-onliner/root/usr/share/onliner/setnlbw.sh
 
 # x86 型号只显示 CPU 型号
-# sed -i 's/${g}.*/${a}${b}${c}${d}${e}${f}${hydrid}/g' package/lean/autocore/files/x86/autocore
+sed -i 's/${g}.*/${a}${b}${c}${d}${e}${f}${hydrid}/g' package/lean/autocore/files/x86/autocore
 
 # 修改本地时间格式
-# sed -i 's/os.date()/os.date("%a %Y-%m-%d %H:%M:%S")/g' package/lean/autocore/files/*/index.htm
+sed -i 's/os.date()/os.date("%a %Y-%m-%d %H:%M:%S")/g' package/lean/autocore/files/*/index.htm
 
 # 修改版本为编译日期
 # date_version=$(date +"%y.%m.%d")
@@ -115,8 +115,6 @@ find package/*/ -maxdepth 2 -path "*/Makefile" | xargs -i sed -i 's/PKG_SOURCE_U
 
 # 取消主题默认设置
 # find package/luci-theme-*/* -type f -name '*luci-theme-*' -print -exec sed -i '/set luci.main.mediaurlbase/d' {} \;
-
-# 调整 APP 到 正确的分类菜单
 
 
 
