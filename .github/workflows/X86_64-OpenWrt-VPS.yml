@@ -189,7 +189,7 @@ jobs:
       # 步骤5：使用 rsync 同步 bin 目录到 VPS
       - name: Sync bin directory to VPS
         run: |
-          rsync -avz --progress -e "ssh -i ~/.ssh/id_rsa" $OPENWRT_PATH/bin/ ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ secrets.VPS_TARGET_DIR }}${{ env.DEFAULT_VERSION }}/
+          rsync -avz --progress --delete -e "ssh -i ~/.ssh/id_rsa" $OPENWRT_PATH/bin/ ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ secrets.VPS_TARGET_DIR }}${{ env.DEFAULT_VERSION }}/
           # 可选：同步后在 VPS 上调整权限
           ssh -i ~/.ssh/id_rsa ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "sudo chown -R www-data:www-data ${{ secrets.VPS_TARGET_DIR }} && sudo chmod -R 755 ${{ secrets.VPS_TARGET_DIR }}"
 
