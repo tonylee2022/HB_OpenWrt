@@ -138,46 +138,6 @@ jobs:
         if: (!cancelled())
         run: df -hT
 
-      - name: Generate recursive index.html
-        run: |
-          #!/usr/bin/env bash
-          set -e
-          cd $OPENWRT_PATH/bin
-          # 设置变量
-          find . -type d | while read dir; do
-            cd "$dir"
-            title_name=$(basename "$PWD")
-            echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'"$title_name"'</title></head><body><h1>Index of /'"$dir"'</h1><hr><pre><a href="../index.html">../</a>' > index.html
-            for f in *; do
-              [ "$f" != "index.html" ] && \
-              if [ -d "$f" ]; then
-                # 对于目录，链接长度与文件名长度一致
-                printf '<a href="%s/index.html">%s/</a>                                                  -\n' "$f" "$f" >> index.html
-              else
-                size=$(( ($(stat -c %s "$f") + 1023) / 1024 ))  # 转换为KB，向上取整
-                mod_time=$(stat -c %y "$f" | cut -d'.' -f1 | tr '-' '/')  # 完整年月日时分
-                # 计算文件名长度
-                f_len=${#f}
-                # 如果文件名长度超过80，截断并用>表示
-                if [ $f_len -gt 80 ]; then
-                  f_display=${f:0:79}'>'
-                  padding=''
-                else
-                  f_display=$f
-                  # 计算需要填充的空格数
-                  padding=$(printf '%*s' $((80 - f_len)) '')
-                fi
-                # 打印文件信息，确保日期列对齐
-                printf '<a href="%s">%s</a>%s %-19s %10d\n' "$f" "$f_display" "$padding" "$mod_time" "$size" >> index.html
-              fi
-            done
-            echo '</pre><hr></body></html>' >> index.html
-            cd - >/dev/null
-          done
-          # 显示目录结构
-          echo "当前 bin 目录结构："
-          tree "$OPENWRT_PATH/bin" || ls -R "$OPENWRT_PATH/bin"
-
       # 步骤4：设置 SSH 密钥用于同步到 VPS
       - name: Setup SSH key
         run: |
@@ -191,7 +151,60 @@ jobs:
         run: |
           rsync -avz --progress --delete -e "ssh -i ~/.ssh/id_rsa" $OPENWRT_PATH/bin/ ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ secrets.VPS_TARGET_DIR }}${{ env.DEFAULT_VERSION }}/
           # 可选：同步后在 VPS 上调整权限
-          ssh -i ~/.ssh/id_rsa ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "sudo chown -R www-data:www-data ${{ secrets.VPS_TARGET_DIR }} && sudo chmod -R 755 ${{ secrets.VPS_TARGET_DIR }}"
+          ssh -i ~/.ssh/id_rsa ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "cd ${{ secrets.VPS_TARGET_DIR }} && openwrt-genindex && sudo chown -R www-data:www-data ${{ secrets.VPS_TARGET_DIR }} && sudo chmod -R 755 ${{ secrets.VPS_TARGET_DIR }}"
+
+      - name: Organize Files
+        if: steps.compile.outputs.status == 'success'
+        run: |
+          cd $OPENWRT_PATH/bin/targets/*/*
+          cat sha256sums
+          cp $OPENWRT_PATH/.config build.config
+          mv -f $OPENWRT_PATH/bin/packages/*/*/*.ipk packages
+          tar -zcf Packages.tar.gz packages
+          rm -rf packages feeds.buildinfo version.buildinfo
+          echo "KERNEL=$(cat *.manifest | grep ^kernel | cut -d- -f2 | tr -d ' ')" >> $GITHUB_ENV
+          echo "FIRMWARE_PATH=$PWD" >> $GITHUB_ENV
+
+      - name: Upload Firmware To Artifact
+        if: steps.compile.outputs.status == 'success' && env.FIRMWARE_RELEASE != 'true'
+        uses: actions/upload-artifact@main
+        with:
+          name: ${{ env.SOURCE_REPO }}-firmware-${{ env.DEVICE_TARGET }}-${{ env.DEVICE_SUBTARGET }}-${{ env.FILE_DATE }}
+          path: ${{ env.FIRMWARE_PATH }}
+
+      - name: Upload Firmware To Release
+        if: steps.compile.outputs.status == 'success' && env.FIRMWARE_RELEASE == 'true'
+        uses: ncipollo/release-action@main
+        with:
+          name: R${{ env.FILE_DATE }} for ${{ env.FIRMWARE_TAG }}
+          allowUpdates: true
+          tag: ${{ env.FILE_DATE }}
+          token: ${{ secrets.GH_TOKEN }}
+          artifacts: ${{ env.FIRMWARE_PATH }}/*
+          body: |
+            **This is OpenWrt Firmware for ${{ env.FIRMWARE_TAG }}**
+            ### 📒 固件信息
+            - 💻 平台架构: ${{ env.DEVICE_TARGET }}-${{ env.DEVICE_SUBTARGET }}
+            - ⚽ 固件源码: ${{ env.REPO_URL }}
+            - 💝 源码分支: ${{ env.REPO_BRANCH }}
+            - 🚀 内核版本: ${{ env.KERNEL }}
+            - 🌐 默认地址: 192.168.5.1
+            - 🔑 默认密码: password
+            ### 🧊 固件版本
+            - 固件编译前最后一次➦[主源码](${{ env.REPO_URL }})更新记录
+            - ${{ env.COMMIT_AUTHOR }}
+            - ${{ env.COMMIT_DATE }}
+            - ${{ env.COMMIT_MESSAGE }}
+            - ${{ env.COMMIT_HASH }}
+
+      - name: Remove old Releases
+        uses: dev-drprasad/delete-older-releases@master
+        if: env.FIRMWARE_RELEASE == 'true' && !cancelled()
+        with:
+          keep_latest: 4
+          delete_tags: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
 
       - name: Notify on Compile Status
         if: always()
@@ -208,4 +221,4 @@ jobs:
             源码分支: ${{ env.REPO_BRANCH }}
             OpenWrt源码: ${{ env.DEFAULT_VERSION }}
             Commit: ${{ github.sha }}
-            编译完成，发布到 VPS！
+            编译完成，已发布到 VPS 和 Github！
