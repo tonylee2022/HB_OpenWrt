@@ -154,21 +154,21 @@ jobs:
                 # 对于目录，链接长度与文件名长度一致
                 printf '<a href="%s/index.html">%s/</a>                                                  -\n' "$f" "$f" >> index.html
               else
-                size=$(stat -c %s "$f")
-                mod_time=$(stat -c %y "$f" | cut -d' ' -f1 | cut -d'-' -f1-2 | tr '-' '/')$(stat -c %y "$f" | cut -d' ' -f2 | cut -d':' -f1-2)
+                size=$(( ($(stat -c %s "$f") + 1023) / 1024 ))  # 转换为KB，向上取整
+                mod_time=$(stat -c %y "$f" | cut -d'.' -f1 | tr '-' '/')  # 完整年月日时分
                 # 计算文件名长度
                 f_len=${#f}
-                # 如果文件名长度超过50，截断并用>表示
-                if [ $f_len -gt 50 ]; then
-                  f_display=${f:0:49}'>'
+                # 如果文件名长度超过80，截断并用>表示
+                if [ $f_len -gt 80 ]; then
+                  f_display=${f:0:79}'>'
                   padding=''
                 else
                   f_display=$f
                   # 计算需要填充的空格数
-                  padding=$(printf '%*s' $((50 - f_len)) '')
+                  padding=$(printf '%*s' $((80 - f_len)) '')
                 fi
                 # 打印文件信息，确保日期列对齐
-                printf '<a href="%s">%s</a>%s %-15s %15d\n' "$f" "$f_display" "$padding" "$mod_time" "$size" >> index.html
+                printf '<a href="%s">%s</a>%s %-19s %10d\n' "$f" "$f_display" "$padding" "$mod_time" "$size" >> index.html
               fi
             done
             echo '</pre><hr></body></html>' >> index.html
