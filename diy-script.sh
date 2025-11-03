@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 修改默认IP
-sed -i 's/192\.168\.1\.1/192\.168\.5\.1/g' package/base-files/luci2/bin/config_generate
+sed -i 's/192\.168\.1\.1/192\.168\.5\.1/g' package/base-files/luci/bin/config_generate
 
 # 修改默认密码为空
 # sed -i 's/$1$V4UetPzk$CYXluq4wUazHjmCDBCqXF.//g' package/lean/default-settings/files/zzz-default-settings
@@ -22,11 +22,12 @@ sed -i 's|/bin/login|/bin/login -f root|g' feeds/packages/utils/ttyd/files/ttyd.
 # rm -rf feeds/packages/net/smartdns
 rm -rf feeds/packages/net/{chinadns-ng,dns2socks,dns2tcp,geoview,gn,hysteria,ipt2socks,microsocks,naiveproxy,shadowsocks-libev,shadowsocks-rust,shadowsocksr-libev,simple-obfs,sing-box,ssocks,tcping,transmission-web-control,transmission,trojan-plus,tuic-client,v2ray-core,v2ray-geodata,v2ray-plugin,xray-core,xray-plugin}
 rm -rf feeds/luci/themes/luci-theme-argon
+rm -rf feeds/luci/applications/luci-app-argon-config
 # rm -rf feeds/luci/applications/luci-app-smartdns
 rm -rf feeds/luci/applications/luci-app-passwall
-rm -rf feeds/luci/applications/luci-app-passwall2
-rm -rf feeds/luci/applications/luci-app-openclash
-rm -rf feeds/luci/applications/luci-app-netdata
+# rm -rf feeds/luci/applications/luci-app-passwall2
+# rm -rf feeds/luci/applications/luci-app-openclash
+# rm -rf feeds/luci/applications/luci-app-netdata
 rm -rf feeds/luci/applications/luci-app-transmission
 
 # Git稀疏克隆，只克隆指定目录到本地
@@ -42,8 +43,8 @@ function git_sparse_clone() {
 # 添加额外插件
 # git clone --depth=1 https://github.com/kongfl888/luci-app-adguardhome package/luci-app-adguardhome
 git clone --depth=1 https://github.com/sirpdboy/luci-app-poweroffdevice package/luci-app-poweroffdevice
-git clone --depth=1 https://github.com/destan19/OpenAppFilter package/OpenAppFilter
-git clone --depth=1 https://github.com/Jason6111/luci-app-netdata package/luci-app-netdata
+# git clone --depth=1 https://github.com/destan19/OpenAppFilter package/OpenAppFilter
+# git clone --depth=1 https://github.com/Jason6111/luci-app-netdata package/luci-app-netdata
 # git clone --depth=1 https://github.com/Erope/openwrt_nezha package/openwrt_nezha
 git_sparse_clone js https://github.com/sirpdboy/luci-app-netspeedtest luci-app-netspeedtest homebox speedtest-cli netspeedtest
 git_sparse_clone main https://github.com/kenzok8/small-package luci-app-advanced luci-app-quickstart quickstart
@@ -54,7 +55,7 @@ git_sparse_clone openwrt-23.05 https://github.com/openwrt/packages net/transmiss
 git clone --depth=1 https://github.com/xiaorouji/openwrt-passwall-packages package/openwrt-passwall
 git clone --depth=1 https://github.com/xiaorouji/openwrt-passwall package/luci-app-passwall
 # git clone --depth=1 https://github.com/xiaorouji/openwrt-passwall2 package/luci-app-passwall2
-git_sparse_clone master https://github.com/vernesong/OpenClash luci-app-openclash
+# git_sparse_clone master https://github.com/vernesong/OpenClash luci-app-openclash
 
 # Themes
 git clone --depth=1 https://github.com/jerrykuku/luci-theme-argon package/luci-theme-argon
