@@ -63,7 +63,10 @@ jobs:
           df -hT $GITHUB_WORKSPACE
           git clone $REPO_URL -b $REPO_BRANCH openwrt
           cd openwrt
-          # git checkout 9a4a9252051253a5a0271ecd41d95d3830c33305  ##修改lede版本
+          ##修改luci版本
+          sed -i -e '/openwrt-23.05/s/^/#/' -e '/openwrt-24.10/s/^#//' feeds.conf.default
+          ##修改lede版本
+          # git checkout 9a4a9252051253a5a0271ecd41d95d3830c33305
           echo "OPENWRT_PATH=$PWD" >> $GITHUB_ENV
           COMMIT_AUTHOR=$(git show -s --date=short --format="作者: %an")
           echo "COMMIT_AUTHOR=$COMMIT_AUTHOR" >> $GITHUB_ENV
