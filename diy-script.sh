@@ -27,7 +27,7 @@ rm -rf feeds/luci/applications/luci-app-argon-config
 rm -rf feeds/luci/applications/luci-app-passwall
 # rm -rf feeds/luci/applications/luci-app-passwall2
 # rm -rf feeds/luci/applications/luci-app-openclash
-# rm -rf feeds/luci/applications/luci-app-netdata
+rm -rf feeds/luci/applications/luci-app-netdata
 rm -rf feeds/luci/applications/luci-app-transmission
 
 # Git稀疏克隆，只克隆指定目录到本地
@@ -44,7 +44,7 @@ function git_sparse_clone() {
 # git clone --depth=1 https://github.com/kongfl888/luci-app-adguardhome package/luci-app-adguardhome
 git clone --depth=1 https://github.com/sirpdboy/luci-app-poweroffdevice package/luci-app-poweroffdevice
 # git clone --depth=1 https://github.com/destan19/OpenAppFilter package/OpenAppFilter
-# git clone --depth=1 https://github.com/Jason6111/luci-app-netdata package/luci-app-netdata
+git clone --depth=1 https://github.com/Jason6111/luci-app-netdata package/luci-app-netdata
 # git clone --depth=1 https://github.com/Erope/openwrt_nezha package/openwrt_nezha
 git_sparse_clone js https://github.com/sirpdboy/luci-app-netspeedtest luci-app-netspeedtest homebox speedtest-cli netspeedtest
 git_sparse_clone main https://github.com/kenzok8/small-package luci-app-advanced luci-app-quickstart quickstart
