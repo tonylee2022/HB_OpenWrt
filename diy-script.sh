@@ -8,7 +8,9 @@ sed -i 's/192\.168\.1\.1/192\.168\.5\.1/g' package/base-files/luci/bin/config_ge
 
 # 禁用版本信息修改
 sed -i "/DISTRIB_REVISION/s/^/#/" package/lean/default-settings/files/zzz-default-settings
+sed -i 's/^VERSION:=$(PKG_RELEASE)-$(REVISION)/VERSION:=$(PKG_RELEASE)/' /package/base-files/Makefile
 #sed -i "/DISTRIB_DESCRIPTION/s/^/#/" package/lean/default-settings/files/zzz-default-settings
+sed -i 's/^luciversion\s*=.*/luciversion = ""/' /feeds/luci/modules/luci-lua-runtime/luasrc/version.lua
 
 # 更改默认 Shell 为 zsh
 sed -i 's/\/bin\/ash/\/usr\/bin\/zsh/g' package/base-files/files/etc/passwd
