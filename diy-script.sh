@@ -7,10 +7,10 @@ sed -i 's/192\.168\.1\.1/192\.168\.5\.1/g' package/base-files/luci/bin/config_ge
 # sed -i 's/$1$V4UetPzk$CYXluq4wUazHjmCDBCqXF.//g' package/lean/default-settings/files/zzz-default-settings
 
 # 禁用版本信息修改
-sed -i "/DISTRIB_REVISION/s/^/#/" package/lean/default-settings/files/zzz-default-settings
-sed -i 's/^VERSION:=$(PKG_RELEASE)-$(REVISION)/VERSION:=$(PKG_RELEASE)/' /package/base-files/Makefile
-#sed -i "/DISTRIB_DESCRIPTION/s/^/#/" package/lean/default-settings/files/zzz-default-settings
-sed -i 's/^luciversion\s*=.*/luciversion = ""/' /feeds/luci/modules/luci-lua-runtime/luasrc/version.lua
+# sed -i "/DISTRIB_REVISION/s/^/#/" package/lean/default-settings/files/zzz-default-settings
+# sed -i 's/^VERSION:=$(PKG_RELEASE)-$(REVISION)/VERSION:=$(PKG_RELEASE)/' /package/base-files/Makefile
+# sed -i "/DISTRIB_DESCRIPTION/s/^/#/" package/lean/default-settings/files/zzz-default-settings
+# sed -i 's/^luciversion\s*=.*/luciversion = ""/' /feeds/luci/modules/luci-lua-runtime/luasrc/version.lua
 
 # 更改默认 Shell 为 zsh
 sed -i 's/\/bin\/ash/\/usr\/bin\/zsh/g' package/base-files/files/etc/passwd
@@ -94,19 +94,9 @@ sed -i 's/${g}.*/${a}${b}${c}${d}${e}${f}${hydrid}/g' package/lean/autocore/file
 sed -i 's/os.date()/os.date("%a %Y-%m-%d %H:%M:%S")/g' package/lean/autocore/files/*/index.htm
 
 # 修改版本为编译日期
-# date_version=$(date +"%y.%m.%d")
-# orig_version=$(cat "package/lean/default-settings/files/zzz-default-settings" | grep DISTRIB_REVISION= | awk -F "'" '{print $2}')
-# sed -i "s/${orig_version}/R${date_version} by TonyLee/g" package/lean/default-settings/files/zzz-default-settings
-
-# 修复 hostapd 报错
-# cp -f $GITHUB_WORKSPACE/scripts/011-fix-mbo-modules-build.patch package/network/services/hostapd/patches/011-fix-mbo-modules-build.patch
-
-# 修复 xray-core1.8.8 编译错误
-# rm -rf feeds/packages/lang/golang
-# git clone https://github.com/sbwml/packages_lang_golang -b 22.x feeds/packages/lang/golang
-
-# 修复 armv8 设备 xfsprogs 报错
-# sed -i 's/TARGET_CFLAGS.*/TARGET_CFLAGS += -DHAVE_MAP_SYNC -D_LARGEFILE64_SOURCE/g' feeds/packages/utils/xfsprogs/Makefile
+date_version=$(date +"%y.%m.%d")
+orig_version=$(cat "package/lean/default-settings/files/zzz-default-settings" | grep DISTRIB_REVISION= | awk -F "'" '{print $2}')
+sed -i "s/${orig_version}/R${date_version} by TonyLee/g" package/lean/default-settings/files/zzz-default-settings
 
 # 修改 Makefile
 # find package/*/ -maxdepth 2 -path "*/Makefile" | xargs -i sed -i 's/..\/..\/luci.mk/$(TOPDIR)\/feeds\/luci\/luci.mk/g' {}
