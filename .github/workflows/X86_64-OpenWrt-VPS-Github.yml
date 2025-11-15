@@ -190,6 +190,7 @@ jobs:
             - 💻 平台架构: ${{ env.DEVICE_TARGET }}-${{ env.DEVICE_SUBTARGET }}
             - ⚽ 固件源码: ${{ env.REPO_URL }}
             - 💝 源码分支: ${{ env.REPO_BRANCH }} ${{ env.DEFAULT_VERSION }}
+            - 💝 luci版本：openwrt-24.10
             - 🚀 内核版本: ${{ env.KERNEL }}
             - 🌐 默认地址: 192.168.5.1
             - 🔑 默认密码: password
@@ -223,5 +224,6 @@ jobs:
             固件源码: ${{ env.REPO_URL }}
             源码分支: ${{ env.REPO_BRANCH }}
             OpenWrt源码: ${{ env.DEFAULT_VERSION }}
+            luci版本：openwrt-24.10
             Commit: ${{ github.sha }}
             编译完成，已发布到 VPS 和 Github！
