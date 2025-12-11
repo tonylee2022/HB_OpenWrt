@@ -224,6 +224,7 @@ jobs:
             固件源码: ${{ env.REPO_URL }}
             源码分支: ${{ env.REPO_BRANCH }}
             OpenWrt源码: ${{ env.DEFAULT_VERSION }}
+            内核版本: ${{ env.KERNEL }}
             Luci版本：openwrt-23.05
             Commit: ${{ github.sha }}
             编译完成，已发布到 VPS 和 Github！
