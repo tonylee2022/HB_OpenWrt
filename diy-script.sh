@@ -1,8 +1,7 @@
 #!/bin/bash
 
 # 修改默认IP
-sed -i 's/192\.168\.1\.1/192\.168\.5\.1/g' package/base-files/luci/bin/config_generate
-
+sed -i "s/ipad=\${ipaddr:-\"192\.168\.1\.1\"}/ipad=\${ipaddr:-\"192.168.5.1\"}/" package/base-files/luci/bin/config_generate
 # 修改默认密码为空
 # sed -i 's/$1$V4UetPzk$CYXluq4wUazHjmCDBCqXF.//g' package/lean/default-settings/files/zzz-default-settings
 
@@ -20,7 +19,7 @@ sed -i 's|/bin/login|/bin/login -f root|g' feeds/packages/utils/ttyd/files/ttyd.
 
 # 移除要替换的包
 # rm -rf feeds/packages/net/smartdns
-rm -rf feeds/packages/net/{chinadns-ng,dns2socks,dns2tcp,geoview,gn,hysteria,ipt2socks,microsocks,naiveproxy,shadowsocks-libev,shadowsocks-rust,shadowsocksr-libev,simple-obfs,sing-box,ssocks,tcping,transmission-web-control,transmission,trojan-plus,tuic-client,v2ray-core,v2ray-geodata,v2ray-plugin,xray-core,xray-plugin}
+rm -rf feeds/packages/net/{xray-core,v2ray-geodata,sing-box,chinadns-ng,dns2socks,hysteria,ipt2socks,microsocks,naiveproxy,shadowsocks-libev,shadowsocks-rust,shadowsocksr-libev,simple-obfs,tcping,trojan-plus,tuic-client,v2ray-plugin,xray-plugin,geoview,shadow-tls,transmission-web-control,transmission}
 rm -rf feeds/luci/themes/luci-theme-argon
 rm -rf feeds/luci/applications/luci-app-argon-config
 # rm -rf feeds/luci/applications/luci-app-smartdns
