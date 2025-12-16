@@ -48,7 +48,14 @@ git clone --depth=1 https://github.com/Jason6111/luci-app-netdata package/luci-a
 # git clone --depth=1 https://github.com/Erope/openwrt_nezha package/openwrt_nezha
 git_sparse_clone master https://github.com/sirpdboy/luci-app-netspeedtest luci-app-netspeedtest homebox speedtest-cli netspeedtest
 git_sparse_clone main https://github.com/kenzok8/small-package luci-app-advanced luci-app-quickstart quickstart
-git_sparse_clone openwrt-23.05 https://github.com/openwrt/luci applications/luci-app-transmission
+#git_sparse_clone openwrt-23.05 https://github.com/openwrt/luci applications/luci-app-transmission
+# 3. 临时克隆官方 luci 仓库
+git clone --depth=1 -b openwrt-23.05 https://github.com/openwrt/luci temp_luci
+# 复制界面插件
+cp -r temp_luci/applications/luci-app-transmission package/
+# 删除临时目录
+rm -rf temp_luci
+# ---------------------------------------------------------
 git_sparse_clone openwrt-23.05 https://github.com/openwrt/packages net/transmission net/transmission-web-control libs/libdeflate libs/libdht libs/libutp libs/libb64
 
 # 科学上网插件
