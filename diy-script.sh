@@ -49,7 +49,6 @@ git clone --depth=1 https://github.com/Jason6111/luci-app-netdata package/luci-a
 git_sparse_clone master https://github.com/sirpdboy/luci-app-netspeedtest luci-app-netspeedtest homebox speedtest-cli netspeedtest
 git_sparse_clone main https://github.com/kenzok8/small-package luci-app-advanced luci-app-quickstart quickstart
 git_sparse_clone openwrt-23.05 https://github.com/openwrt/luci applications/luci-app-transmission
-mv applications/luci-app-transmission package/luci-app-transmission
 git_sparse_clone openwrt-23.05 https://github.com/openwrt/packages net/transmission net/transmission-web-control libs/libdeflate libs/libdht libs/libutp libs/libb64
 
 # 科学上网插件
