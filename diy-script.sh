@@ -17,9 +17,6 @@ sed -i 's/\/bin\/ash/\/usr\/bin\/zsh/g' package/base-files/files/etc/passwd
 # TTYD 免登录
 sed -i 's|/bin/login|/bin/login -f root|g' feeds/packages/utils/ttyd/files/ttyd.config
 
-# 添加 feeds
-echo "src-git openclaw https://github.com/10000ge10000/luci-app-openclaw.git" >> feeds.conf.default
-
 # 移除要替换的包
 # rm -rf feeds/packages/net/smartdns
 rm -rf feeds/packages/net/{chinadns-ng,dns2socks,dns2tcp,geoview,gn,hysteria,ipt2socks,microsocks,naiveproxy,shadowsocks-libev,shadowsocks-rust,shadowsocksr-libev,simple-obfs,sing-box,ssocks,tcping,transmission-web-control,transmission,trojan-plus,tuic-client,v2ray-core,v2ray-geodata,v2ray-plugin,xray-core,xray-plugin}  #LEDE
@@ -46,19 +43,24 @@ function git_sparse_clone() {
 # git clone --depth=1 https://github.com/kongfl888/luci-app-adguardhome package/luci-app-adguardhome
 # git clone --depth=1 https://github.com/esirplayground/luci-app-poweroff package/luci-app-poweroff  #18.06
 git clone --depth=1 https://github.com/sirpdboy/luci-app-poweroffdevice package/luci-app-poweroffdevice  #23.05
-# git clone --depth=1 https://github.com/destan19/OpenAppFilter package/OpenAppFilter
-git clone --depth=1 https://github.com/Jason6111/luci-app-netdata package/luci-app-netdata
-# git clone --depth=1 https://github.com/Erope/openwrt_nezha package/openwrt_nezha
-git_sparse_clone master https://github.com/sirpdboy/luci-app-netspeedtest luci-app-netspeedtest homebox speedtest-cli netspeedtest
-git_sparse_clone main https://github.com/kenzok8/small-package luci-app-advanced luci-app-quickstart quickstart
+git clone --depth=1 https://github.com/sirpdboy/netspeedtest package/netspeedtest-luci
+git clone --depth=1 https://github.com/sirpdboy/luci-app-advanced package/luci-app-advanced
+git clone --depth=1 https://github.com/sirpdboy/luci-app-partexp package/luci-app-partexp
+git clone --depth=1 https://github.com/sirpdboy/luci-theme-kucat package/luci-theme-kucat
+git clone --depth=1 https://github.com/sirpdboy/luci-app-kucat-config package/luci-app-kucat-config
+git clone --depth=1 https://github.com/sirpdboy/luci-app-netdata package/luci-app-netdata ##测试
+# git clone --depth=1 https://github.com/Jason6111/luci-app-netdata package/luci-app-netdata ##测试后可删
+# git clone --depth=1 https://github.com/Erope/openwrt_nezha package/openwrt_nezha ##V0版本
+# git_sparse_clone main https://github.com/kenzok8/small-package luci-app-quickstart quickstart 仓库被禁
 git_sparse_clone openwrt-23.05 https://github.com/openwrt/luci applications/luci-app-transmission
 git_sparse_clone openwrt-23.05 https://github.com/openwrt/packages net/transmission net/transmission-web-control libs/libdeflate libs/libdht libs/libutp libs/libb64
 
 # 科学上网插件
 git clone --depth=1 https://github.com/Openwrt-Passwall/openwrt-passwall-packages package/openwrt-passwall
-git clone --depth=1 https://github.com/Openwrt-Passwall/openwrt-passwall package/luci-app-passwall
+git clone --depth=1 https://github.com/Openwrt-Passwall/openwrt-passwall package/passwall-luci
+git clone --depth=1 https://github.com/vernesong/OpenClash package/openclash-luci ##测试
 # git clone --depth=1 https://github.com/Openwrt-Passwall/openwrt-passwall2 package/luci-app-passwall2
-git_sparse_clone master https://github.com/vernesong/OpenClash luci-app-openclash
+# git_sparse_clone master https://github.com/vernesong/OpenClash luci-app-openclash 测试后可删
 
 # Themes
 # git clone --depth=1 -b 18.06 https://github.com/jerrykuku/luci-theme-argon package/luci-theme-argon
@@ -76,8 +78,8 @@ git clone --depth=1 https://github.com/jerrykuku/luci-app-argon-config package/l
 # git clone --depth=1 https://github.com/sbwml/luci-app-alist package/luci-app-alist
 
 # iStore
-git_sparse_clone main https://github.com/linkease/istore-ui app-store-ui
-git_sparse_clone main https://github.com/linkease/istore luci
+# git_sparse_clone main https://github.com/linkease/istore-ui app-store-ui
+# git_sparse_clone main https://github.com/linkease/istore luci
 
 # 在线用户 LEDE
 git_sparse_clone main https://github.com/haiibo/packages luci-app-onliner
