@@ -81,8 +81,6 @@ jobs:
         run: |
           cp $CONFIG_FILE $OPENWRT_PATH/.config
           cd $OPENWRT_PATH
-          # 添加 feeds
-          echo "src-git openclaw https://github.com/10000ge10000/luci-app-openclaw.git" >> feeds.conf.default
           make defconfig > /dev/null 2>&1
           SOURCE_REPO="$(echo $REPO_URL | awk -F '/' '{print $(NF)}')"
           echo "SOURCE_REPO=$SOURCE_REPO" >> $GITHUB_ENV
