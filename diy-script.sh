@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 修改默认IP
-sed -i "s/ipad=\${ipaddr:-\"192\.168\.1\.1\"}/ipad=\${ipaddr:-\"192.168.5.1\"}/" package/base-files/luci/bin/config_generate
+# sed -i "s/ipad=\${ipaddr:-\"192\.168\.1\.1\"}/ipad=\${ipaddr:-\"192.168.5.1\"}/" package/base-files/luci/bin/config_generate ##修改无效
 # 修改默认密码为空
 # sed -i 's/$1$V4UetPzk$CYXluq4wUazHjmCDBCqXF.//g' package/lean/default-settings/files/zzz-default-settings
 
@@ -46,13 +46,11 @@ git clone --depth=1 https://github.com/10000ge10000/luci-app-openclaw package/lu
 git clone --depth=1 https://github.com/sirpdboy/luci-app-poweroffdevice package/luci-app-poweroffdevice  #23.05
 git clone --depth=1 https://github.com/sirpdboy/netspeedtest package/netspeedtest-luci
 git clone --depth=1 https://github.com/sirpdboy/luci-app-advanced package/luci-app-advanced
-git clone --depth=1 https://github.com/sirpdboy/luci-app-partexp package/luci-app-partexp
-git clone --depth=1 https://github.com/sirpdboy/luci-theme-kucat package/luci-theme-kucat
-git clone --depth=1 https://github.com/sirpdboy/luci-app-kucat-config package/luci-app-kucat-config
-git clone --depth=1 https://github.com/sirpdboy/luci-app-netdata package/luci-app-netdata ##测试
-# git clone --depth=1 https://github.com/Jason6111/luci-app-netdata package/luci-app-netdata ##测试后可删
+#git clone --depth=1 https://github.com/sirpdboy/luci-app-partexp package/luci-app-partexp ##不能识别设备
+# git clone --depth=1 https://github.com/sirpdboy/luci-app-netdata package/luci-app-netdata ##netdata不可用
+git clone --depth=1 https://github.com/Jason6111/luci-app-netdata package/luci-app-netdata
 # git clone --depth=1 https://github.com/Erope/openwrt_nezha package/openwrt_nezha ##V0版本
-# git_sparse_clone main https://github.com/kenzok8/small-package luci-app-quickstart quickstart 仓库被禁
+# git_sparse_clone main https://github.com/kenzok8/small-package luci-app-quickstart quickstart ##仓库被禁
 git_sparse_clone openwrt-23.05 https://github.com/openwrt/luci applications/luci-app-transmission
 git_sparse_clone openwrt-23.05 https://github.com/openwrt/packages net/transmission net/transmission-web-control libs/libdeflate libs/libdht libs/libutp libs/libb64
 
