@@ -146,18 +146,46 @@ jobs:
 
       # 步骤4：设置 SSH 密钥用于同步到 VPS
       - name: Setup SSH key
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          set -euo pipefail
+          [ -n "$SSH_PRIVATE_KEY" ] || { echo "SSH_PRIVATE_KEY is not configured" >&2; exit 1; }
+          [ -n "$VPS_KNOWN_HOSTS" ] || { echo "VPS_KNOWN_HOSTS is not configured" >&2; exit 1; }
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
 
       # 步骤5：使用 rsync 同步 bin 目录到 VPS
       - name: Sync bin directory to VPS
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_TARGET_DIR: ${{ secrets.VPS_TARGET_DIR }}
         run: |
-          rsync -avz --progress --delete -e "ssh -i ~/.ssh/id_rsa" $OPENWRT_PATH/bin/ ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ secrets.VPS_TARGET_DIR }}${{ env.DEFAULT_VERSION }}/
+          set -euo pipefail
+          [ -n "$VPS_HOST" ] || { echo "VPS_HOST is not configured" >&2; exit 1; }
+          [ -n "$VPS_USER" ] || { echo "VPS_USER is not configured" >&2; exit 1; }
+          [ -n "$VPS_TARGET_DIR" ] || { echo "VPS_TARGET_DIR is not configured" >&2; exit 1; }
+          [ -n "$DEFAULT_VERSION" ] || { echo "DEFAULT_VERSION is empty" >&2; exit 1; }
+          [[ "$VPS_USER" =~ ^[A-Za-z0-9._-]+$ ]] || { echo "Invalid VPS_USER" >&2; exit 1; }
+          [[ "$VPS_HOST" =~ ^[A-Za-z0-9.-]+$ ]] || { echo "Invalid VPS_HOST" >&2; exit 1; }
+          [[ "$VPS_TARGET_DIR" =~ ^/[A-Za-z0-9._/-]+$ ]] || { echo "VPS_TARGET_DIR must be a safe absolute path" >&2; exit 1; }
+          [ "$VPS_TARGET_DIR" != "/" ] || { echo "VPS_TARGET_DIR must not be /" >&2; exit 1; }
+          [[ "$VPS_TARGET_DIR" != *".."* ]] || { echo "VPS_TARGET_DIR must not contain .." >&2; exit 1; }
+          [[ "$DEFAULT_VERSION" =~ ^[A-Za-z0-9._-]+$ ]] || { echo "Invalid DEFAULT_VERSION" >&2; exit 1; }
+          [ -d "$OPENWRT_PATH/bin" ] || { echo "Firmware bin directory does not exist" >&2; exit 1; }
+
+          remote="$VPS_USER@$VPS_HOST"
+          target_root="${VPS_TARGET_DIR%/}"
+          target_dir="$target_root/$DEFAULT_VERSION"
+          ssh -i ~/.ssh/id_rsa "$remote" "mkdir -p '$target_dir'"
+          rsync -avz --progress --delete -e "ssh -i ~/.ssh/id_rsa" "$OPENWRT_PATH/bin/" "$remote:$target_dir/"
           # 同步后在 VPS 上生成网页目录、调整权限
-          ssh -i ~/.ssh/id_rsa ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "cd ${{ secrets.VPS_TARGET_DIR }} && openwrt-genindex && sudo chown -R www-data:www-data ${{ secrets.VPS_TARGET_DIR }} && sudo chmod -R 755 ${{ secrets.VPS_TARGET_DIR }}"
+          ssh -i ~/.ssh/id_rsa "$remote" "cd '$target_root' && openwrt-genindex && sudo chown -R www-data:www-data '$target_dir' && sudo chmod -R u=rwX,go=rX '$target_dir'"
 
       - name: Organize Files
         if: steps.compile.outputs.status == 'success'
