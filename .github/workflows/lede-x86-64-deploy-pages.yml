@@ -4,6 +4,7 @@ on:
   workflow_dispatch:
 
 env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
   REPO_URL: https://github.com/coolsnowwolf/lede
   REPO_BRANCH: master
   CONFIG_FILE: configs/x86_64.config
@@ -63,13 +64,18 @@ jobs:
           root-reserve-mb: 1024
 
       - name: Checkout
-        uses: actions/checkout@main
+        uses: actions/checkout@v6
 
       - name: Clone Source Code
         run: |
           df -hT $GITHUB_WORKSPACE
           git clone $REPO_URL -b $REPO_BRANCH openwrt
           cd openwrt
+          # 使用 LuCI openwrt-24.10 分支
+          sed -i -E '/coolsnowwolf\/luci/ s/^#*/#/' feeds.conf.default
+          sed -i -E '/coolsnowwolf\/luci(\.git)?;openwrt-24\.10/ s/^#*//' feeds.conf.default
+          grep -qE '^src-git luci .+;openwrt-24\.10$' feeds.conf.default
+          [ "$(grep -c '^src-git luci ' feeds.conf.default)" -eq 1 ]
           # git checkout 9a4a9252051253a5a0271ecd41d95d3830c33305  ##修改lede版本
           echo "OPENWRT_PATH=$PWD" >> $GITHUB_ENV
           COMMIT_AUTHOR=$(git show -s --date=short --format="作者: %an")
@@ -147,7 +153,7 @@ jobs:
 
       - name: Upload Bin Directory
         if: steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: lede${{ env.DEFAULT_VERSION }}-bin
           path: |
@@ -196,7 +202,7 @@ jobs:
             - ${{ env.COMMIT_HASH }}
 
       - name: Remove old Releases
-        uses: dev-drprasad/delete-older-releases@master
+        uses: dev-drprasad/delete-older-releases@v0.3.4
         if: env.FIRMWARE_RELEASE == 'true' && !cancelled()
         with:
           keep_latest: 6
@@ -206,7 +212,7 @@ jobs:
 
       - name: Notify on Compile Status
         if: always()
-        uses: appleboy/telegram-action@master
+        uses: appleboy/telegram-action@v1.0.1
         with:
           to: ${{ secrets.TELEGRAM_CHAT_ID }}
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -293,19 +299,19 @@ jobs:
           tree "$PAGES_PATH" || ls -R "$PAGES_PATH"
 
       - name: Configure Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
 
       - name: Upload Pages Artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: ${{ env.PAGES_PATH }}
 
       - name: Deploy to GitHub Pages
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
 
       - name: Notify Deploy Status
         if: always()
-        uses: appleboy/telegram-action@master
+        uses: appleboy/telegram-action@v1.0.1
         with:
           to: ${{ secrets.TELEGRAM_CHAT_ID }}
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}

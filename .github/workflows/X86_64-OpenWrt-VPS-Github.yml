@@ -4,6 +4,7 @@ on:
   workflow_dispatch:
 
 env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
   REPO_URL: https://github.com/coolsnowwolf/lede
   REPO_BRANCH: master
   CONFIG_FILE: configs/x86_64.config
@@ -56,15 +57,18 @@ jobs:
           root-reserve-mb: 1024
 
       - name: Checkout
-        uses: actions/checkout@main
+        uses: actions/checkout@v6
 
       - name: Clone Source Code
         run: |
           df -hT $GITHUB_WORKSPACE
           git clone $REPO_URL -b $REPO_BRANCH openwrt
           cd openwrt
-          ##修改luci版本
-          sed -i -e '/openwrt-23.05/s/^/#/' -e '/openwrt-24.10/s/^#//' feeds.conf.default
+          # 使用 LuCI openwrt-24.10 分支
+          sed -i -E '/coolsnowwolf\/luci/ s/^#*/#/' feeds.conf.default
+          sed -i -E '/coolsnowwolf\/luci(\.git)?;openwrt-24\.10/ s/^#*//' feeds.conf.default
+          grep -qE '^src-git luci .+;openwrt-24\.10$' feeds.conf.default
+          [ "$(grep -c '^src-git luci ' feeds.conf.default)" -eq 1 ]
           ##修改lede版本
           # git checkout 9a4a9252051253a5a0271ecd41d95d3830c33305
           echo "OPENWRT_PATH=$PWD" >> $GITHUB_ENV
@@ -143,18 +147,46 @@ jobs:
 
       # 步骤4：设置 SSH 密钥用于同步到 VPS
       - name: Setup SSH key
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          set -euo pipefail
+          [ -n "$SSH_PRIVATE_KEY" ] || { echo "SSH_PRIVATE_KEY is not configured" >&2; exit 1; }
+          [ -n "$VPS_KNOWN_HOSTS" ] || { echo "VPS_KNOWN_HOSTS is not configured" >&2; exit 1; }
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
 
       # 步骤5：使用 rsync 同步 bin 目录到 VPS
       - name: Sync bin directory to VPS
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_TARGET_DIR: ${{ secrets.VPS_TARGET_DIR }}
         run: |
-          rsync -avz --progress --delete -e "ssh -i ~/.ssh/id_rsa" $OPENWRT_PATH/bin/ ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ secrets.VPS_TARGET_DIR }}${{ env.DEFAULT_VERSION }}/
+          set -euo pipefail
+          [ -n "$VPS_HOST" ] || { echo "VPS_HOST is not configured" >&2; exit 1; }
+          [ -n "$VPS_USER" ] || { echo "VPS_USER is not configured" >&2; exit 1; }
+          [ -n "$VPS_TARGET_DIR" ] || { echo "VPS_TARGET_DIR is not configured" >&2; exit 1; }
+          [ -n "$DEFAULT_VERSION" ] || { echo "DEFAULT_VERSION is empty" >&2; exit 1; }
+          [[ "$VPS_USER" =~ ^[A-Za-z0-9._-]+$ ]] || { echo "Invalid VPS_USER" >&2; exit 1; }
+          [[ "$VPS_HOST" =~ ^[A-Za-z0-9.-]+$ ]] || { echo "Invalid VPS_HOST" >&2; exit 1; }
+          [[ "$VPS_TARGET_DIR" =~ ^/[A-Za-z0-9._/-]+$ ]] || { echo "VPS_TARGET_DIR must be a safe absolute path" >&2; exit 1; }
+          [ "$VPS_TARGET_DIR" != "/" ] || { echo "VPS_TARGET_DIR must not be /" >&2; exit 1; }
+          [[ "$VPS_TARGET_DIR" != *".."* ]] || { echo "VPS_TARGET_DIR must not contain .." >&2; exit 1; }
+          [[ "$DEFAULT_VERSION" =~ ^[A-Za-z0-9._-]+$ ]] || { echo "Invalid DEFAULT_VERSION" >&2; exit 1; }
+          [ -d "$OPENWRT_PATH/bin" ] || { echo "Firmware bin directory does not exist" >&2; exit 1; }
+
+          remote="$VPS_USER@$VPS_HOST"
+          target_root="${VPS_TARGET_DIR%/}"
+          target_dir="$target_root/$DEFAULT_VERSION"
+          ssh -i ~/.ssh/id_rsa "$remote" "mkdir -p '$target_dir'"
+          rsync -avz --progress --delete -e "ssh -i ~/.ssh/id_rsa" "$OPENWRT_PATH/bin/" "$remote:$target_dir/"
           # 同步后在 VPS 上生成网页目录、调整权限
-          ssh -i ~/.ssh/id_rsa ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "cd ${{ secrets.VPS_TARGET_DIR }} && openwrt-genindex && sudo chown -R www-data:www-data ${{ secrets.VPS_TARGET_DIR }} && sudo chmod -R 755 ${{ secrets.VPS_TARGET_DIR }}"
+          ssh -i ~/.ssh/id_rsa "$remote" "cd '$target_root' && openwrt-genindex && sudo chown -R www-data:www-data '$target_dir' && sudo chmod -R u=rwX,go=rX '$target_dir'"
 
       - name: Organize Files
         if: steps.compile.outputs.status == 'success'
@@ -170,14 +202,14 @@ jobs:
 
       - name: Upload Firmware To Artifact
         if: steps.compile.outputs.status == 'success' && env.FIRMWARE_RELEASE != 'true'
-        uses: actions/upload-artifact@main
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.SOURCE_REPO }}-firmware-${{ env.DEVICE_TARGET }}-${{ env.DEVICE_SUBTARGET }}-${{ env.FILE_DATE }}
           path: ${{ env.FIRMWARE_PATH }}
 
       - name: Upload Firmware To Release
         if: steps.compile.outputs.status == 'success' && env.FIRMWARE_RELEASE == 'true'
-        uses: ncipollo/release-action@main
+        uses: ncipollo/release-action@v1
         with:
           name: R${{ env.FILE_DATE }} for ${{ env.FIRMWARE_TAG }}
           allowUpdates: true
@@ -202,7 +234,7 @@ jobs:
             - ${{ env.COMMIT_HASH }}
 
       - name: Remove old Releases
-        uses: dev-drprasad/delete-older-releases@master
+        uses: dev-drprasad/delete-older-releases@v0.3.4
         if: env.FIRMWARE_RELEASE == 'true' && !cancelled()
         with:
           keep_latest: 4
@@ -212,7 +244,7 @@ jobs:
 
       - name: Notify on Compile Status
         if: always()
-        uses: appleboy/telegram-action@master
+        uses: appleboy/telegram-action@v1.0.1
         with:
           to: ${{ secrets.TELEGRAM_CHAT_ID }}
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -224,6 +256,7 @@ jobs:
             固件源码: ${{ env.REPO_URL }}
             源码分支: ${{ env.REPO_BRANCH }}
             OpenWrt源码: ${{ env.DEFAULT_VERSION }}
-            luci版本：openwrt-24.10
+            内核版本: ${{ env.KERNEL }}
+            Luci版本：openwrt-24.10
             Commit: ${{ github.sha }}
             编译完成，已发布到 VPS 和 Github！
