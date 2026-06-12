@@ -94,10 +94,15 @@ sed -i 's/${g}.*/${a}${b}${c}${d}${e}${f}${hydrid}/g' package/lean/autocore/file
 # 修改本地时间格式 LEDE
 sed -i 's/os.date()/os.date("%a %Y-%m-%d %H:%M:%S")/g' package/lean/autocore/files/*/index.htm
 
-# 修改版本为编译日期  LEDE
+# 保留 OpenWrt 原始版本号，并追加自定义编译日期
+openwrt_version=$(awk '/^VERSION_NUMBER:=\$\(if/{gsub(/.*,/ , ""); gsub(/\).*/, ""); print; exit}' include/version.mk)
+[ -n "$openwrt_version" ] || { echo "Unable to detect OpenWrt version" >&2; exit 1; }
 date_version=$(date +"%y.%m.%d")
-orig_version=$(cat "package/lean/default-settings/files/zzz-default-settings" | grep DISTRIB_REVISION= | awk -F "'" '{print $2}')
-sed -i "s/${orig_version}/R${date_version} by TonyLee/g" package/lean/default-settings/files/zzz-default-settings
+default_settings="package/lean/default-settings/files/zzz-default-settings"
+orig_version=$(awk -F "'" '/DISTRIB_REVISION=/{print $2; exit}' "$default_settings")
+sed -i "s/DISTRIB_DESCRIPTION='LEDE '/DISTRIB_DESCRIPTION='OpenWrt ${openwrt_version} '/" "$default_settings"
+sed -i "s/OPENWRT_RELEASE=\"LEDE /OPENWRT_RELEASE=\"OpenWrt ${openwrt_version} /" "$default_settings"
+sed -i "s/${orig_version}/R${date_version} by TonyLee/g" "$default_settings"
 
 # 修改 Makefile
 find package/*/ -maxdepth 2 -path "*/Makefile" | xargs -i sed -i 's/..\/..\/luci.mk/$(TOPDIR)\/feeds\/luci\/luci.mk/g' {}
