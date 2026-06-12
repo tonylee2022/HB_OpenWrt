@@ -1,0 +1,67 @@
+name: Clean OpenWrt Config
+
+on:
+  workflow_dispatch:
+
+env:
+  REPO_URL: https://github.com/coolsnowwolf/lede
+  REPO_BRANCH: master
+  CONFIG_FILE: configs/x86_64.config
+  DIY_SCRIPT: diy-script.sh
+  TZ: Asia/Shanghai
+
+jobs:
+  Clean:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Initialization Environment
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          sudo rm -rf /usr/share/dotnet /etc/apt/sources.list.d /usr/local/lib/android $AGENT_TOOLSDIRECTORY
+          sudo -E apt-get -y purge azure-cli ghc* zulu* llvm* firefox google* dotnet* powershell openjdk* mongodb* moby* || true
+          sudo -E apt-get -y update
+          sudo -E apt-get -y install $(curl -fsSL https://raw.githubusercontent.com/tonylee2022/openwrt_d/main/depends_ubuntu_2204.txt)
+          sudo -E systemctl daemon-reload
+          sudo -E apt-get -y autoremove --purge
+          sudo -E apt-get -y clean
+          sudo timedatectl set-timezone "$TZ"
+
+      - name: Clone Source Code
+        run: |
+          git clone $REPO_URL -b $REPO_BRANCH openwrt
+          echo "OPENWRT_PATH=$PWD/openwrt" >> $GITHUB_ENV
+
+      - name: Install Feeds
+        run: |
+          cd $OPENWRT_PATH
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
+
+      - name: Load Custom Configuration
+        run: |
+          [ -e $CONFIG_FILE ] && cp $CONFIG_FILE $OPENWRT_PATH/.config
+          chmod +x $DIY_SCRIPT
+          cd $OPENWRT_PATH
+          $GITHUB_WORKSPACE/$DIY_SCRIPT
+
+      - name: Clean and Minimize Config
+        run: |
+          cd $OPENWRT_PATH
+          make defconfig
+          make savedefconfig
+          cp defconfig $GITHUB_WORKSPACE/$CONFIG_FILE
+
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add $CONFIG_FILE
+          git commit -m "Auto-clean config [skip ci]" || echo "No changes to commit"
+          git push origin ${{ github.ref_name }}
