@@ -1,7 +1,14 @@
 #!/bin/bash
 
-# 修改默认IP
-# sed -i 's/192.168.1.1/192.168.5.1/g' package/base-files/luci/bin/config_generate ##修改无效
+# 修改默认 LAN IP
+sed -i '/^CONFIG_IMAGEOPT=/d; /^# CONFIG_IMAGEOPT is not set/d; /^CONFIG_PREINITOPT=/d; /^# CONFIG_PREINITOPT is not set/d; /^CONFIG_TARGET_DEFAULT_LAN_IP_FROM_PREINIT=/d; /^CONFIG_TARGET_PREINIT_IP=/d; /^CONFIG_TARGET_PREINIT_BROADCAST=/d' .config
+cat >> .config <<'EOF'
+CONFIG_IMAGEOPT=y
+CONFIG_PREINITOPT=y
+CONFIG_TARGET_DEFAULT_LAN_IP_FROM_PREINIT=y
+CONFIG_TARGET_PREINIT_IP="192.168.5.1"
+CONFIG_TARGET_PREINIT_BROADCAST="192.168.5.255"
+EOF
 # 修改默认密码为空
 # sed -i 's/$1$V4UetPzk$CYXluq4wUazHjmCDBCqXF.//g' package/lean/default-settings/files/zzz-default-settings
 
@@ -56,7 +63,7 @@ git_sparse_clone openwrt-23.05 https://github.com/openwrt/packages net/transmiss
 
 # 科学上网插件
 git clone --depth=1 https://github.com/Openwrt-Passwall/openwrt-passwall-packages package/openwrt-passwall
-git clone --depth=1 https://github.com/Openwrt-Passwall/openwrt-passwall package/passwall-luci
+git clone --depth=1 https://github.com/Openwrt-Passwall/openwrt-passwall package/luci-app-passwall
 git clone --depth=1 https://github.com/vernesong/OpenClash package/openclash-luci ##测试
 git clone --depth=1 https://github.com/Openwrt-Passwall/openwrt-passwall2 package/luci-app-passwall2
 # git_sparse_clone master https://github.com/vernesong/OpenClash luci-app-openclash 测试后可删
@@ -92,10 +99,16 @@ sed -i 's/${g}.*/${a}${b}${c}${d}${e}${f}${hydrid}/g' package/lean/autocore/file
 # 修改本地时间格式 LEDE
 sed -i 's/os.date()/os.date("%a %Y-%m-%d %H:%M:%S")/g' package/lean/autocore/files/*/index.htm
 
-# 修改版本为编译日期  LEDE
-date_version=$(date +"%y.%m.%d")
-orig_version=$(cat "package/lean/default-settings/files/zzz-default-settings" | grep DISTRIB_REVISION= | awk -F "'" '{print $2}')
-sed -i "s/${orig_version}/R${date_version} by TonyLee/g" package/lean/default-settings/files/zzz-default-settings
+# 保留 LEDE 名称，使用 OpenWrt 原始版本号并追加自定义标识
+openwrt_version=$(awk '/^VERSION_NUMBER:=\$\(if/{gsub(/.*,/ , ""); gsub(/\).*/, ""); print; exit}' include/version.mk)
+[ -n "$openwrt_version" ] || { echo "Unable to detect OpenWrt version" >&2; exit 1; }
+default_settings="package/lean/default-settings/files/zzz-default-settings"
+orig_version=$(awk -F "'" '/DISTRIB_REVISION=/{print $2; exit}' "$default_settings")
+sed -i "s/${orig_version}/${openwrt_version} by TonyLee/g" "$default_settings"
+
+# LuCI 版本保留 Git 日期，去掉最后的提交哈希
+sed -i "s#revision = '\$(LUCI_VERSION)'#revision = '\$(shell echo \$(LUCI_VERSION) | rev | cut -d- -f2- | rev)'#" feeds/luci/modules/luci-base/src/Makefile
+sed -i 's/luciversion = "${2:-Git}"/luciversion = "${2%-*}"/' feeds/luci/modules/luci-lua-runtime/src/mkversion.sh
 
 # 修改 Makefile
 find package/*/ -maxdepth 2 -path "*/Makefile" | xargs -i sed -i 's/..\/..\/luci.mk/$(TOPDIR)\/feeds\/luci\/luci.mk/g' {}

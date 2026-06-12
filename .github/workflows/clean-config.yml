@@ -62,7 +62,7 @@ jobs:
         run: |
           cd $OPENWRT_PATH
           make defconfig
-          make savedefconfig
+          ./scripts/diffconfig.sh > defconfig
           cp defconfig $GITHUB_WORKSPACE/$CONFIG_FILE
 
       - name: Commit and Push Changes
