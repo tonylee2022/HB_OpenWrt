@@ -1,195 +1,117 @@
-<div align="center">
-<img width="768" src="https://cdn.jsdelivr.net/gh/haiibo/OpenWrt/images/openwrt.png"/>
-<h1>OpenWrt — X86_64 固件云编译</h1>
+# HB_OpenWrt
 
-<img src="https://img.shields.io/github/downloads/haiibo/OpenWrt/total.svg?style=for-the-badge&color=32C955"/>
-<img src="https://img.shields.io/github/stars/haiibo/OpenWrt.svg?style=for-the-badge&color=orange"/>
-<img src="https://img.shields.io/github/forks/haiibo/OpenWrt.svg?style=for-the-badge&color=ff69b4"/>
-<img src="https://img.shields.io/github/license/haiibo/OpenWrt.svg?style=for-the-badge&color=blueviolet"/>
+本仓库用于基于 Lean LEDE `master` 源码编译 x86_64 OpenWrt 固件。构建、配置整理、GitHub 发布、GitHub Pages 软件包目录和 VPS 上传均由 GitHub Actions 完成。
 
-[![](https://img.shields.io/badge/-目录:-696969.svg)](#readme) [![](https://img.shields.io/badge/-项目说明-FFFFFF.svg)](#项目说明-) [![](https://img.shields.io/badge/-固件特色-FFFFFF.svg)](#固件特色-) [![](https://img.shields.io/badge/-固件下载-FFFFFF.svg)](#固件下载-) [![](https://img.shields.io/badge/-插件预览-FFFFFF.svg)](#插件预览-) [![](https://img.shields.io/badge/-定制固件-FFFFFF.svg)](#定制固件-) [![](https://img.shields.io/badge/-特别提示-FFFFFF.svg)](#特别提示-) [![](https://img.shields.io/badge/-鸣谢-FFFFFF.svg)](#鸣谢-)
-</div>
+## 分支说明
 
+| 分支 | LuCI 来源 | 说明 |
+| --- | --- | --- |
+| `main` | `openwrt-23.05` | 显式切换到 LuCI 23.05 分支 |
+| `24.10` | `openwrt-24.10` | 显式切换到 LuCI 24.10 分支 |
+| `25.12` | LEDE 默认 LuCI 源 | 保留 LEDE 当前默认源，未显式锁定 LuCI 分支 |
 
-## 项目说明 [![](https://img.shields.io/badge/-项目基本介绍-FFFFFF.svg)](#项目说明-)
-- 固件构成：[![Lean](https://img.shields.io/badge/Lede-Lean-ff69b4.svg?style=flat&logo=appveyor)](https://github.com/coolsnowwolf/lede) [![P3TERX](https://img.shields.io/badge/OpenWrt-P3TERX-blueviolet.svg?style=flat&logo=appveyor)](https://github.com/P3TERX/Actions-OpenWrt) [![Haiibo](https://img.shields.io/badge/Build-Haiibo-32C955.svg?style=flat&logo=appveyor)](https://github.com/haiibo/OpenWrt)
-- 项目使用 Github Actions 拉取 [Lean](https://github.com/coolsnowwolf/lede) 的 Openwrt 源码仓库进行云编译
-- 固件默认管理地址：`192.168.5.1` 默认用户：`root` 默认密码：`password`
-- 提供适配于 **X86_64** 平台的 OpenWrt 固件
-- 固件集成的所有 ipk 插件全部打包在 Packages 文件中，可以在 [Releases](https://github.com/haiibo/OpenWrt/releases) 内进行下载
-- 第一次使用请采用全新安装，避免出现升级失败以及其他一些可能的 BUG
+三个分支均从 LEDE `master` 拉取源码，因此上游更新可能影响后续编译结果。
 
+## 固件配置
 
-## 固件特色 [![](https://img.shields.io/badge/-本项目固件特色-FFFFFF.svg)](#固件特色-)
-1. 固件手动触发编译，确保获得所需版本
-2. 集成部分常用有线、无线、3G / 4G 网卡驱动
-3. 集成中文版 netdata 实时监控插件
-4. 集成 iStore 应用商店，可根据需求自由安装插件
-5. 集成 Docker 服务，可在 OpenWrt 内自由部署 Docker 应用
-6. 集成 oh-my-zsh 终端工具，提升命令行体验
-7. 编译完成后自动通过 Telegram 通知
-8. 支持同步部署到 VPS 和 GitHub Pages 软件源
+- 目标平台：`x86_64`
+- 配置文件：`configs/x86_64.config`
+- 自定义脚本：`diy-script.sh`
+- 默认 LAN 地址：`192.168.5.1`
+- 默认 Shell：`zsh`
+- TTYD：root 自动登录
+- 默认主题：Argon
+- 固件版本格式：`LEDE <OpenWrt版本> by TonyLee / LuCI <分支> git-<日期>`
 
+当前配置包含以下主要组件：
 
-## 固件下载 [![](https://img.shields.io/badge/-编译状态及下载链接-FFFFFF.svg)](#固件下载-)
-点击下表中 [![](https://img.shields.io/badge/下载-链接-blueviolet.svg?style=flat&logo=hack-the-box)](https://github.com/haiibo/OpenWrt/releases) 即可跳转到固件下载页面
-| 平台+设备名称 | 固件编译状态 | 配置文件 | 固件下载 |
-| :-------------: | :-------------: | :-------------: | :-------------: |
-| [![](https://img.shields.io/badge/OpenWrt-X86_64位-32C955.svg?logo=openwrt)](https://github.com/haiibo/OpenWrt/blob/main/.github/workflows/X86_64-OpenWrt.yml) | [![](https://github.com/haiibo/OpenWrt/actions/workflows/X86_64-OpenWrt.yml/badge.svg)](https://github.com/haiibo/OpenWrt/actions/workflows/X86_64-OpenWrt.yml) | [![](https://img.shields.io/badge/编译-配置-orange.svg?logo=apache-spark)](https://github.com/haiibo/OpenWrt/blob/main/configs/x86_64.config) | [![](https://img.shields.io/badge/下载-链接-blueviolet.svg?logo=hack-the-box)](https://github.com/haiibo/OpenWrt/releases/tag/X86_64) |
+- 网络与代理：AdGuardHome、OpenClash、PassWall、PassWall2、SmartDNS、MWAN3、OpenVPN、ZeroTier、Cloudflared
+- 系统与存储：Docker、DiskMan、Samba4、Transmission、TTYD、Zsh
+- 状态与工具：Netdata、网络测速、在线用户、哪吒代理、OpenClaw、高级设置、定时重拨、释放内存、关机
 
+实际生成的软件包以当次编译日志和 `configs/x86_64.config` 为准。
 
-## 插件预览 [![](https://img.shields.io/badge/-固件插件及功能预览-FFFFFF.svg)](#插件预览-)
-<details>
-<summary><b>&nbsp;X86_64 软路由插件预览</b></summary>
-<br/>
-<details>
-<summary><b>├── 状态</b></summary>
-　├── 概况<br/>
-　├── 防火墙<br/>
-　├── 路由表<br/>
-　├── 系统日志<br/>
-　├── 内核日志<br/>
-　├── 系统进程<br/>
-　├── 实时信息<br/>
-　├── 实时监控<br/>
-　├── 在线用户<br/>
-　├── WireGuard 状态<br/>
-　├── 负载均衡<br/>
-　└── 释放内存
-</details>
-<details>
-<summary><b>├── 系统</b></summary>
-　├── 系统<br/>
-　├── 管理权<br/>
-　├── TTYD 终端<br/>
-　├── 软件包<br/>
-　├── 启动项<br/>
-　├── 计划任务<br/>
-　├── 挂载点<br/>
-　├── 磁盘管理<br/>
-　├── 备份/升级<br/>
-　├── 定时重启<br/>
-　├── Argon 主题设置<br/>
-　├── 重启<br/>
-　└── 关机
-</details>
-<details>
-<summary><b>├── 服务</b></summary>
-　├── PassWall<br/>
-　├── OpenClash<br/>
-　├── SmartDNS<br/>
-　├── AdGuard Home<br/>
-　├── 动态 DNS<br/>
-　├── 网络唤醒<br/>
-　├── UPnP<br/>
-　├── OpenVPN<br/>
-　├── ZeroTier<br/>
-　├── MWAN3 分流助手<br/>
-　└── 网速测试
-</details>
-<details>
-<summary><b>├── Docker</b></summary>
-　├── 概览<br/>
-　├── 容器<br/>
-　├── 镜像<br/>
-　├── 网络<br/>
-　├── 存储卷<br/>
-　├── 事件<br/>
-　└── 设置
-</details>
-<details>
-<summary><b>├── 网络存储</b></summary>
-　├── Samba 网络共享<br/>
-　└── Transmission
-</details>
-<details>
-<summary><b>├── VPN</b></summary>
-　├── OpenVPN 服务器<br/>
-　├── WireGuard<br/>
-　└── ZeroTier
-</details>
-<details>
-<summary><b>├── 网络</b></summary>
-　├── 接口<br/>
-　├── DHCP/DNS<br/>
-　├── 防火墙<br/>
-　├── 诊断<br/>
-　├── SQM QoS<br/>
-　├── 多线多拨<br/>
-　└── 负载均衡
-</details>
-　└── <b>退出</b>
-</details>
+## 工作流
 
+所有工作流均为手动触发，不会定时自动编译。
 
-## 定制固件 [![](https://img.shields.io/badge/-项目基本编译教程-FFFFFF.svg)](#定制固件-)
-1. 首先要登录 Github 账号，然后 Fork 此项目到你自己的 Github 仓库
-2. 修改 `configs` 目录对应文件添加或删除插件，或者上传自己的 `xx.config` 配置文件
-3. 如需修改默认 IP、添加或删除插件包以及一些其他设置请在 `diy-script.sh` 文件内修改
-4. 点击 `Actions` 运行要编译的 `workflow` 即可开始编译
-5. 编译大概需要3-5小时，编译完成后在仓库主页 [Releases](https://github.com/haiibo/OpenWrt/releases) 对应 Tag 标签内下载固件
-<details>
-<summary><b>&nbsp;如果你觉得修改 config 文件麻烦，那么你可以点击此处尝试本地提取</b></summary>
+### X86_64-OpenWrt-VPS-Github.yml
 
-1. 首先装好 Linux 系统，推荐 Debian 11 或 Ubuntu LTS
+用于完整构建和双目标发布：
 
-2. 安装编译依赖环境
+- 编译 x86_64 固件
+- 将完整 `bin` 目录按版本上传到 VPS
+- 单独整理 GitHub Release 文件，避免把完整构建目录上传到 Release
+- 清理旧 Release
+- 发送 Telegram 构建通知
 
-   ```bash
-   sudo apt update -y
-   sudo apt full-upgrade -y
-   sudo apt install -y ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential \
-   bzip2 ccache cmake cpio curl device-tree-compiler fastjar flex gawk gettext gcc-multilib g++-multilib \
-   git gperf haveged help2man intltool libc6-dev-i386 libelf-dev libglib2.0-dev libgmp3-dev libltdl-dev \
-   libmpc-dev libmpfr-dev libncurses5-dev libncursesw5-dev libreadline-dev libssl-dev libtool lrzsz \
-   mkisofs msmtp nano ninja-build p7zip p7zip-full patch pkgconf python2.7 python3 python3-pyelftools \
-   libpython3-dev qemu-utils rsync scons squashfs-tools subversion swig texinfo uglifyjs upx-ucl unzip \
-   vim wget xmlto xxd zlib1g-dev
-   ```
+### lede-x86-64-deploy-pages.yml
 
-3. 下载源代码，更新 feeds 并安装到本地
+用于 GitHub 发布和 Pages 部署：
 
-   ```bash
-   git clone https://github.com/coolsnowwolf/lede
-   cd lede
-   ./scripts/feeds update -a
-   ./scripts/feeds install -a
-   ```
+- 编译 x86_64 固件
+- 创建 GitHub Release
+- 将软件包目录部署到 GitHub Pages
+- 清理旧 Release
+- 发送 Telegram 构建及部署通知
 
-4. 复制 diy-script.sh 文件内所有内容到命令行，添加自定义插件和自定义设置
+### clean-config.yml
 
-5. 命令行输入 `make menuconfig` 选择配置，选好配置后导出差异部分到 seed.config 文件
+用于重新整理配置：
 
-   ```bash
-   make defconfig
-   ./scripts/diffconfig.sh > seed.config
-   ```
+- 拉取当前 LEDE 源码
+- 按所在分支选择或保留 LuCI 源
+- 执行 `diy-script.sh`
+- 运行 `make defconfig` 和 `scripts/diffconfig.sh`
+- 将整理后的配置提交回当前分支
 
-7. 命令行输入 `cat seed.config` 查看这个文件，也可以用文本编辑器打开
+## 仓库密钥
 
-8. 复制 seed.config 文件内所有内容到 configs 目录对应文件中覆盖就可以了
+运行 `X86_64-OpenWrt-VPS-Github.yml` 前，需要在仓库 Actions Secrets 中配置：
 
-   **如果看不懂编译界面可以参考 YouTube 视频：[软路由固件 OpenWrt 编译界面设置](https://www.youtube.com/watch?v=jEE_J6-4E3Y&list=WL&index=7)**
-</details>
+| 密钥 | 用途 |
+| --- | --- |
+| `GH_TOKEN` | 创建和清理 GitHub Release |
+| `SSH_PRIVATE_KEY` | 登录 VPS 的 SSH 私钥 |
+| `VPS_HOST` | VPS 主机名或 IP 地址 |
+| `VPS_USER` | VPS SSH 用户名 |
+| `VPS_TARGET_DIR` | VPS 上的绝对目标目录，不能是 `/`，也不能包含 `..` |
+| `VPS_KNOWN_HOSTS` | 已核验的 VPS SSH 主机公钥记录 |
+| `TELEGRAM_CHAT_ID` | Telegram 接收方 ID |
+| `TELEGRAM_BOT_TOKEN` | Telegram Bot Token |
 
+`VPS_KNOWN_HOSTS` 可使用以下命令取得，但写入密钥前应独立核对服务器指纹：
 
-## 特别提示 [![](https://img.shields.io/badge/-个人免责声明-FFFFFF.svg)](#特别提示-)
+```bash
+ssh-keyscan -H your-vps-host
+```
 
-- **因精力有限不提供任何技术支持和教程等相关问题解答，不保证完全无 BUG！**
+运行 `lede-x86-64-deploy-pages.yml` 时，Release 和 Pages 使用 GitHub 自动提供的 `GITHUB_TOKEN`；Telegram 通知仍需要配置对应的两个密钥。
 
-- **本人不对任何人因使用本固件所遭受的任何理论或实际的损失承担责任！**
+## 使用方法
 
-- **本固件禁止用于任何商业用途，请务必严格遵守国家互联网使用相关法律规定！**
+1. 根据需要选择 `main`、`24.10` 或 `25.12` 分支。
+2. 在 `configs/x86_64.config` 中调整固件配置。
+3. 在 `diy-script.sh` 中维护自定义软件包和默认设置。
+4. 按所选工作流配置仓库密钥。
+5. 在 GitHub Actions 中手动运行对应工作流。
+6. 编译完成后，从 GitHub Release、GitHub Pages 或 VPS 获取成果。
 
+## 主要文件
 
-## 鸣谢 [![](https://img.shields.io/badge/-跪谢各大佬-FFFFFF.svg)](#鸣谢-)
-| [ImmortalWrt](https://github.com/immortalwrt) | [coolsnowwolf](https://github.com/coolsnowwolf) | [P3TERX](https://github.com/P3TERX) | [Flippy](https://github.com/unifreq) |
-| :-------------: | :-------------: | :-------------: | :-------------: |
-| <img width="100" src="https://avatars.githubusercontent.com/u/53193414"/> | <img width="100" src="https://avatars.githubusercontent.com/u/31687149"/> | <img width="100" src="https://avatars.githubusercontent.com/u/25927179"/> | <img width="100" src="https://avatars.githubusercontent.com/u/39355261"/> |
-| [Ophub](https://github.com/ophub) | [SuLingGG](https://github.com/SuLingGG) | [QiuSimons](https://github.com/QiuSimons) | [IvanSolis1989](https://github.com/IvanSolis1989) |
-| <img width="100" src="https://avatars.githubusercontent.com/u/68696949"/> | <img width="100" src="https://avatars.githubusercontent.com/u/22287562"/> | <img width="100" src="https://avatars.githubusercontent.com/u/45143996"/> | <img width="100" src="https://avatars.githubusercontent.com/u/44228691"/> |
+| 路径 | 用途 |
+| --- | --- |
+| `configs/x86_64.config` | x86_64 固件配置 |
+| `diy-script.sh` | 自定义软件包、默认 LAN 地址和系统设置 |
+| `scripts/init-settings.sh` | 首次启动后的默认配置 |
+| `scripts/preset-terminal-tools.sh` | 终端工具预置 |
+| `.github/workflows/X86_64-OpenWrt-VPS-Github.yml` | VPS 与 GitHub Release 发布 |
+| `.github/workflows/lede-x86-64-deploy-pages.yml` | GitHub Release 与 Pages 发布 |
+| `.github/workflows/clean-config.yml` | 配置整理与回写 |
 
+## 注意事项
 
-<a href="#readme">
-<img src="https://img.shields.io/badge/-返回顶部-FFFFFF.svg" title="返回顶部" align="right"/>
-</a>
+- 本仓库仅维护 x86_64 配置，不包含其他设备的构建配置。
+- 自定义软件包来自多个上游仓库，上游变更或失效可能导致编译失败。
+- VPS 工作流会替换目标版本目录，`VPS_TARGET_DIR` 必须使用专门的固件发布目录。
+- 两个发布工作流都会创建 Release，同一版本只运行其中一个即可。
