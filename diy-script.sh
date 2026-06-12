@@ -26,7 +26,8 @@ sed -i 's|/bin/login|/bin/login -f root|g' feeds/packages/utils/ttyd/files/ttyd.
 
 # 移除要替换的包
 # rm -rf feeds/packages/net/smartdns
-rm -rf feeds/packages/net/{chinadns-ng,dns2socks,dns2tcp,geoview,gn,hysteria,ipt2socks,microsocks,naiveproxy,shadowsocks-libev,shadowsocks-rust,shadowsocksr-libev,simple-obfs,sing-box,ssocks,tcping,trojan-plus,tuic-client,v2ray-core,v2ray-geodata,v2ray-plugin,xray-core,xray-plugin}  #LEDE
+rm -rf feeds/packages/net/{chinadns-ng,dns2socks,dns2tcp,geoview,gn,hysteria,ipt2socks,microsocks,miniupnpc,naiveproxy,shadowsocks-libev,shadowsocks-rust,shadowsocksr-libev,simple-obfs,sing-box,ssocks,tcping,transmission-web-control,transmission,trojan-plus,tuic-client,v2ray-core,v2ray-geodata,v2ray-plugin,xray-core,xray-plugin}  #LEDE
+rm -rf feeds/packages/libs/{libdeflate,libdht,libutp,libb64,libnatpmp,libpsl}
 rm -rf feeds/luci/themes/luci-theme-argon
 rm -rf feeds/luci/applications/luci-app-argon-config
 # rm -rf feeds/luci/applications/luci-app-smartdns
@@ -34,7 +35,9 @@ rm -rf feeds/luci/applications/luci-app-passwall  #23.05
 rm -rf feeds/luci/applications/luci-app-passwall2  #23.05
 rm -rf feeds/luci/applications/luci-app-openclash  #23.05
 rm -rf feeds/luci/applications/luci-app-netdata
-# rm -rf feeds/luci/applications/luci-app-transmission
+rm -rf feeds/luci/applications/luci-app-transmission
+rm -rf package/feeds/packages/{transmission-web-control,transmission,libdeflate,libdht,libutp,libb64,libnatpmp,libpsl,miniupnpc,libminiupnpc}
+rm -rf package/feeds/luci/luci-app-transmission
 
 # Git稀疏克隆，只克隆指定目录到本地
 function git_sparse_clone() {
@@ -54,7 +57,8 @@ git clone --depth=1 https://github.com/sirpdboy/netspeedtest package/netspeedtes
 git clone --depth=1 https://github.com/sirpdboy/luci-app-advanced package/luci-app-advanced
 git clone --depth=1 https://github.com/Jason6111/luci-app-netdata package/luci-app-netdata
 git clone --depth=1 https://github.com/tonylee2022/luci-app-nezha-agent package/luci-app-nezha-agent ##V1版本
-
+git_sparse_clone openwrt-24.10 https://github.com/openwrt/luci applications/luci-app-transmission
+git_sparse_clone openwrt-24.10 https://github.com/openwrt/packages net/transmission net/transmission-web-control net/miniupnpc libs/libdeflate libs/libdht libs/libutp libs/libb64 libs/libnatpmp libs/libpsl
 
 # 科学上网插件
 git clone --depth=1 https://github.com/Openwrt-Passwall/openwrt-passwall-packages package/openwrt-passwall
