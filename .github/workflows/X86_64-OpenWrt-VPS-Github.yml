@@ -4,6 +4,7 @@ on:
   workflow_dispatch:
 
 env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
   REPO_URL: https://github.com/coolsnowwolf/lede
   REPO_BRANCH: master
   CONFIG_FILE: configs/x86_64.config
@@ -56,7 +57,7 @@ jobs:
           root-reserve-mb: 1024
 
       - name: Checkout
-        uses: actions/checkout@main
+        uses: actions/checkout@v6
 
       - name: Clone Source Code
         run: |
@@ -201,14 +202,14 @@ jobs:
 
       - name: Upload Firmware To Artifact
         if: steps.compile.outputs.status == 'success' && env.FIRMWARE_RELEASE != 'true'
-        uses: actions/upload-artifact@main
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.SOURCE_REPO }}-firmware-${{ env.DEVICE_TARGET }}-${{ env.DEVICE_SUBTARGET }}-${{ env.FILE_DATE }}
           path: ${{ env.FIRMWARE_PATH }}
 
       - name: Upload Firmware To Release
         if: steps.compile.outputs.status == 'success' && env.FIRMWARE_RELEASE == 'true'
-        uses: ncipollo/release-action@main
+        uses: ncipollo/release-action@v1
         with:
           name: R${{ env.FILE_DATE }} for ${{ env.FIRMWARE_TAG }}
           allowUpdates: true
@@ -233,7 +234,7 @@ jobs:
             - ${{ env.COMMIT_HASH }}
 
       - name: Remove old Releases
-        uses: dev-drprasad/delete-older-releases@master
+        uses: dev-drprasad/delete-older-releases@v0.3.4
         if: env.FIRMWARE_RELEASE == 'true' && !cancelled()
         with:
           keep_latest: 4
@@ -243,7 +244,7 @@ jobs:
 
       - name: Notify on Compile Status
         if: always()
-        uses: appleboy/telegram-action@master
+        uses: appleboy/telegram-action@v1.0.1
         with:
           to: ${{ secrets.TELEGRAM_CHAT_ID }}
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
