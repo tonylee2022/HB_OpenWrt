@@ -63,8 +63,11 @@ jobs:
           df -hT $GITHUB_WORKSPACE
           git clone $REPO_URL -b $REPO_BRANCH openwrt
           cd openwrt
-          ##修改luci版本
-          # sed -i -e '/openwrt-23.05/s/^/#/' -e '/openwrt-24.10/s/^#//' feeds.conf.default
+          # 使用 LuCI openwrt-23.05 分支
+          sed -i -E '/coolsnowwolf\/luci/ s/^#*/#/' feeds.conf.default
+          sed -i -E '/coolsnowwolf\/luci(\.git)?;openwrt-23\.05/ s/^#*//' feeds.conf.default
+          grep -qE '^src-git luci .+;openwrt-23\.05$' feeds.conf.default
+          [ "$(grep -c '^src-git luci ' feeds.conf.default)" -eq 1 ]
           ##修改lede版本
           # git checkout 9a4a9252051253a5a0271ecd41d95d3830c33305
           echo "OPENWRT_PATH=$PWD" >> $GITHUB_ENV

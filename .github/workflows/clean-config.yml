@@ -36,6 +36,13 @@ jobs:
       - name: Clone Source Code
         run: |
           git clone $REPO_URL -b $REPO_BRANCH openwrt
+          cd openwrt
+          # 使用 LuCI openwrt-23.05 分支
+          sed -i -E '/coolsnowwolf\/luci/ s/^#*/#/' feeds.conf.default
+          sed -i -E '/coolsnowwolf\/luci(\.git)?;openwrt-23\.05/ s/^#*//' feeds.conf.default
+          grep -qE '^src-git luci .+;openwrt-23\.05$' feeds.conf.default
+          [ "$(grep -c '^src-git luci ' feeds.conf.default)" -eq 1 ]
+          cd ..
           echo "OPENWRT_PATH=$PWD/openwrt" >> $GITHUB_ENV
 
       - name: Install Feeds
