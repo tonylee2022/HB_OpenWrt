@@ -40,16 +40,16 @@ function git_sparse_clone() {
 }
 
 # 添加额外插件
-# git clone --depth=1 https://github.com/kongfl888/luci-app-adguardhome package/luci-app-adguardhome
+git clone --depth=1 https://github.com/kongfl888/luci-app-adguardhome package/luci-app-adguardhome
 # git clone --depth=1 https://github.com/esirplayground/luci-app-poweroff package/luci-app-poweroff  #18.06
-git clone --depth=1 https://github.com/10000ge10000/luci-app-openclaw package/luci-app-openclaw
+git clone --depth=1 https://github.com/tonylee2022/luci-app-openclaw package/luci-app-openclaw
 git clone --depth=1 https://github.com/sirpdboy/luci-app-poweroffdevice package/luci-app-poweroffdevice  #23.05
 git clone --depth=1 https://github.com/sirpdboy/netspeedtest package/netspeedtest-luci
 git clone --depth=1 https://github.com/sirpdboy/luci-app-advanced package/luci-app-advanced
-#git clone --depth=1 https://github.com/sirpdboy/luci-app-partexp package/luci-app-partexp ##不能识别设备
+# git clone --depth=1 https://github.com/sirpdboy/luci-app-partexp package/luci-app-partexp ##不能识别设备
 # git clone --depth=1 https://github.com/sirpdboy/luci-app-netdata package/luci-app-netdata ##netdata不可用
 git clone --depth=1 https://github.com/Jason6111/luci-app-netdata package/luci-app-netdata
-# git clone --depth=1 https://github.com/Erope/openwrt_nezha package/openwrt_nezha ##V0版本
+git clone --depth=1 https://github.com/tonylee2022/luci-app-nezha-agent package/luci-app-nezha-agent ##V1版本
 # git_sparse_clone main https://github.com/kenzok8/small-package luci-app-quickstart quickstart ##仓库被禁
 git_sparse_clone openwrt-23.05 https://github.com/openwrt/luci applications/luci-app-transmission
 git_sparse_clone openwrt-23.05 https://github.com/openwrt/packages net/transmission net/transmission-web-control libs/libdeflate libs/libdht libs/libutp libs/libb64
@@ -58,7 +58,7 @@ git_sparse_clone openwrt-23.05 https://github.com/openwrt/packages net/transmiss
 git clone --depth=1 https://github.com/Openwrt-Passwall/openwrt-passwall-packages package/openwrt-passwall
 git clone --depth=1 https://github.com/Openwrt-Passwall/openwrt-passwall package/passwall-luci
 git clone --depth=1 https://github.com/vernesong/OpenClash package/openclash-luci ##测试
-# git clone --depth=1 https://github.com/Openwrt-Passwall/openwrt-passwall2 package/luci-app-passwall2
+git clone --depth=1 https://github.com/Openwrt-Passwall/openwrt-passwall2 package/luci-app-passwall2
 # git_sparse_clone master https://github.com/vernesong/OpenClash luci-app-openclash 测试后可删
 
 # Themes
