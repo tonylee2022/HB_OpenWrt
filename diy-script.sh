@@ -101,10 +101,9 @@ default_settings="package/lean/default-settings/files/zzz-default-settings"
 orig_version=$(awk -F "'" '/DISTRIB_REVISION=/{print $2; exit}' "$default_settings")
 sed -i "s/${orig_version}/${openwrt_version} by TonyLee/g" "$default_settings"
 
-# LuCI 版本仅保留分支名称，去掉 Git revision
-sed -i "s/revision = '\$(LUCI_VERSION)'/revision = ''/" feeds/luci/modules/luci-base/src/Makefile
-sed -i 's|./mkversion.sh $@ $(LUCI_VERSION) "$(LUCI_GITBRANCH)"|./mkversion.sh $@ "" "$(LUCI_GITBRANCH)"|' feeds/luci/modules/luci-lua-runtime/src/Makefile
-sed -i 's/luciversion = "${2:-Git}"/luciversion = "${2}"/' feeds/luci/modules/luci-lua-runtime/src/mkversion.sh
+# LuCI 版本保留 Git 日期，去掉最后的提交哈希
+sed -i "s#revision = '\$(LUCI_VERSION)'#revision = '\$(shell echo \$(LUCI_VERSION) | rev | cut -d- -f2- | rev)'#" feeds/luci/modules/luci-base/src/Makefile
+sed -i 's/luciversion = "${2:-Git}"/luciversion = "${2%-*}"/' feeds/luci/modules/luci-lua-runtime/src/mkversion.sh
 
 # 修改 Makefile
 find package/*/ -maxdepth 2 -path "*/Makefile" | xargs -i sed -i 's/..\/..\/luci.mk/$(TOPDIR)\/feeds\/luci\/luci.mk/g' {}
