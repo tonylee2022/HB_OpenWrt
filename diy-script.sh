@@ -1,7 +1,14 @@
 #!/bin/bash
 
-# 修改默认IP
-# sed -i 's/192.168.1.1/192.168.5.1/g' package/base-files/luci/bin/config_generate ##修改无效
+# 修改默认 LAN IP
+sed -i '/^CONFIG_IMAGEOPT=/d; /^# CONFIG_IMAGEOPT is not set/d; /^CONFIG_PREINITOPT=/d; /^# CONFIG_PREINITOPT is not set/d; /^CONFIG_TARGET_DEFAULT_LAN_IP_FROM_PREINIT=/d; /^CONFIG_TARGET_PREINIT_IP=/d; /^CONFIG_TARGET_PREINIT_BROADCAST=/d' .config
+cat >> .config <<'EOF'
+CONFIG_IMAGEOPT=y
+CONFIG_PREINITOPT=y
+CONFIG_TARGET_DEFAULT_LAN_IP_FROM_PREINIT=y
+CONFIG_TARGET_PREINIT_IP="192.168.5.1"
+CONFIG_TARGET_PREINIT_BROADCAST="192.168.5.255"
+EOF
 # 修改默认密码为空
 # sed -i 's/$1$V4UetPzk$CYXluq4wUazHjmCDBCqXF.//g' package/lean/default-settings/files/zzz-default-settings
 
