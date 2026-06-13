@@ -76,6 +76,13 @@ jobs:
           sed -i -E '/coolsnowwolf\/luci(\.git)?;openwrt-23\.05/ s/^#*//' feeds.conf.default
           grep -qE '^src-git luci .+;openwrt-23\.05$' feeds.conf.default
           [ "$(grep -c '^src-git luci ' feeds.conf.default)" -eq 1 ]
+          LUCI_FEED=$(grep '^src-git luci ' feeds.conf.default)
+          LUCI_BRANCH="${LUCI_FEED##*;}"
+          [[ "$LUCI_BRANCH" =~ ^openwrt-[0-9]+\.[0-9]+$ ]] || { echo "Unable to determine LuCI branch" >&2; exit 1; }
+          BRANCH_NAME="$GITHUB_REF_NAME"
+          [[ "$BRANCH_NAME" =~ ^[A-Za-z0-9._-]+$ ]] || { echo "Invalid branch name" >&2; exit 1; }
+          echo "LUCI_BRANCH=$LUCI_BRANCH" >> $GITHUB_ENV
+          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
           # git checkout 9a4a9252051253a5a0271ecd41d95d3830c33305  ##修改lede版本
           echo "OPENWRT_PATH=$PWD" >> $GITHUB_ENV
           COMMIT_AUTHOR=$(git show -s --date=short --format="作者: %an")
@@ -144,8 +151,9 @@ jobs:
           echo -e "$(nproc) thread compile"
           make -j$(nproc) || make -j1 || make -j1 V=s
           echo "status=success" >> $GITHUB_OUTPUT
-          echo "DATE=$(date +"%Y-%m-%d %H-%M")" >> $GITHUB_ENV
-          echo "FILE_DATE=$(date +"%Y.%m.%d.%H.%M")" >> $GITHUB_ENV
+          echo "DATE=$(date +"%Y-%m-%d %H")" >> $GITHUB_ENV
+          echo "FILE_DATE=$(date +"%Y.%m.%d.%H")" >> $GITHUB_ENV
+          echo "RELEASE_TAG=${BRANCH_NAME}-$(date +"%Y.%m.%d.%H")" >> $GITHUB_ENV
 
       - name: Check Space Usage
         if: (!cancelled())
@@ -177,12 +185,13 @@ jobs:
           rm -rf $OPENWRT_PATH/temp-packages
 
       - name: Upload Firmware To Release
+        id: release
         if: steps.compile.outputs.status == 'success' && env.FIRMWARE_RELEASE == 'true'
         uses: ncipollo/release-action@v1
         with:
-          name: R${{ env.FILE_DATE }} for ${{ env.FIRMWARE_TAG }}
+          name: R${{ env.FILE_DATE }} for ${{ env.BRANCH_NAME }}
           allowUpdates: true
-          tag: ${{ env.FILE_DATE }}
+          tag: ${{ env.RELEASE_TAG }}
           token: ${{ secrets.GITHUB_TOKEN }}
           artifacts: ${{ env.FIRMWARE_PATH }}/*
           body: |
@@ -191,6 +200,7 @@ jobs:
             - 💻 平台架构: ${{ env.DEVICE_TARGET }}-${{ env.DEVICE_SUBTARGET }}
             - ⚽ 固件源码: ${{ env.REPO_URL }}
             - 💝 源码分支: ${{ env.REPO_BRANCH }} ${{ env.DEFAULT_VERSION }}
+            - 💝 LuCI版本: ${{ env.LUCI_BRANCH }}
             - 🚀 内核版本: ${{ env.KERNEL }}
             - 🌐 默认地址: 192.168.5.1
             - 🔑 默认密码: password
@@ -202,29 +212,22 @@ jobs:
             - ${{ env.COMMIT_HASH }}
 
       - name: Remove old Releases
-        uses: dev-drprasad/delete-older-releases@v0.3.4
-        if: env.FIRMWARE_RELEASE == 'true' && !cancelled()
-        with:
-          keep_latest: 6
-          delete_tags: true
+        if: steps.release.outcome == 'success'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Notify on Compile Status
-        if: always()
-        uses: appleboy/telegram-action@v1.0.1
-        with:
-          to: ${{ secrets.TELEGRAM_CHAT_ID }}
-          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          message: |
-            编译状态 ${{ job.status }}!
-            工作流: ${{ github.workflow }}
-            用户名: ${{ github.actor }}
-            仓库: ${{ github.repository }}
-            固件源码: ${{ env.REPO_URL }}
-            源码分支: ${{ env.REPO_BRANCH }} ${{ env.DEFAULT_VERSION }}
-            Commit: ${{ github.sha }}
-            等待GitHub Pages软件源发布
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          prefix="${BRANCH_NAME}-"
+          gh api --paginate "repos/$GITHUB_REPOSITORY/releases" --jq '.[] | [.created_at, .id, .tag_name] | @tsv' |
+            awk -F '\t' -v prefix="$prefix" 'index($3, prefix) == 1' |
+            sort -r -k1,1 |
+            tail -n +7 |
+            while IFS=$'\t' read -r created_at release_id tag_name; do
+              [ -n "$release_id" ] || continue
+              echo "Deleting old release $tag_name"
+              gh api --method DELETE "repos/$GITHUB_REPOSITORY/releases/$release_id"
+              gh api --method DELETE "repos/$GITHUB_REPOSITORY/git/refs/tags/$tag_name" || true
+            done
 
       - name: Prepare directory structure
         run: |
@@ -242,11 +245,11 @@ jobs:
           # 切换到OPENWRT路径
           cd "$OPENWRT_PATH" || { echo "错误: 无法进入 $OPENWRT_PATH 目录"; exit 1; }
           # 创建目录结构
-          mkdir -p "./pages/releases/$DEFAULT_VERSION"
+          mkdir -p "./pages/releases/$BRANCH_NAME/$DEFAULT_VERSION"
           # 检查bin目录并移动文件
           if [ -d "./bin" ] && [ "$(ls -A ./bin 2>/dev/null)" ]; then
-            echo "移动文件从 ./bin/ 到 ./pages/releases/$DEFAULT_VERSION/"
-            mv ./bin/* "./pages/releases/$DEFAULT_VERSION/" || echo "移动文件过程中出现错误"
+            echo "移动文件从 ./bin/ 到 ./pages/releases/$BRANCH_NAME/$DEFAULT_VERSION/"
+            mv ./bin/* "./pages/releases/$BRANCH_NAME/$DEFAULT_VERSION/" || echo "移动文件过程中出现错误"
           else
             echo "警告: bin目录不存在或为空，没有文件可移动"
           fi
@@ -307,18 +310,36 @@ jobs:
           path: ${{ env.PAGES_PATH }}
 
       - name: Deploy to GitHub Pages
+        id: deploy
         uses: actions/deploy-pages@v5
 
-      - name: Notify Deploy Status
-        if: always()
+      - name: Notify on Success
+        if: success()
         uses: appleboy/telegram-action@v1.0.1
         with:
           to: ${{ secrets.TELEGRAM_CHAT_ID }}
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           message: |
-            🚀 OpenWrt 软件源发布完成！
-            状态: ${{ job.status }}
+            OpenWrt 编译和软件源发布成功！
             仓库: ${{ github.repository }}
+            仓库分支: ${{ env.BRANCH_NAME }}
             版本: ${{ env.DEFAULT_VERSION }}
+            LuCI版本: ${{ env.LUCI_BRANCH }}
             架构: ${{ env.DEVICE_TARGET }}-${{ env.DEVICE_SUBTARGET }}
-            Pages 地址: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/releases/${{ env.DEFAULT_VERSION }}/
+            Release标签: ${{ env.RELEASE_TAG }}
+            Pages 地址: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/releases/${{ env.BRANCH_NAME }}/${{ env.DEFAULT_VERSION }}/
+
+      - name: Notify on Failure
+        if: failure()
+        uses: appleboy/telegram-action@v1.0.1
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          message: |
+            OpenWrt 编译或软件源发布失败！
+            工作流: ${{ github.workflow }}
+            仓库: ${{ github.repository }}
+            仓库分支: ${{ github.ref_name }}
+            LuCI版本: ${{ env.LUCI_BRANCH }}
+            Commit: ${{ github.sha }}
+            GitHub Release 和 Pages 发布结果未确认，请检查工作流日志。
