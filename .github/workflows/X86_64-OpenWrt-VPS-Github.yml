@@ -69,6 +69,13 @@ jobs:
           sed -i -E '/coolsnowwolf\/luci(\.git)?;openwrt-24\.10/ s/^#*//' feeds.conf.default
           grep -qE '^src-git luci .+;openwrt-24\.10$' feeds.conf.default
           [ "$(grep -c '^src-git luci ' feeds.conf.default)" -eq 1 ]
+          LUCI_FEED=$(grep '^src-git luci ' feeds.conf.default)
+          LUCI_BRANCH="${LUCI_FEED##*;}"
+          [[ "$LUCI_BRANCH" =~ ^openwrt-[0-9]+\.[0-9]+$ ]] || { echo "Unable to determine LuCI branch" >&2; exit 1; }
+          BRANCH_NAME="$GITHUB_REF_NAME"
+          [[ "$BRANCH_NAME" =~ ^[A-Za-z0-9._-]+$ ]] || { echo "Invalid branch name" >&2; exit 1; }
+          echo "LUCI_BRANCH=$LUCI_BRANCH" >> $GITHUB_ENV
+          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
           ##修改lede版本
           # git checkout 9a4a9252051253a5a0271ecd41d95d3830c33305
           echo "OPENWRT_PATH=$PWD" >> $GITHUB_ENV
@@ -140,6 +147,7 @@ jobs:
           echo "status=success" >> $GITHUB_OUTPUT
           echo "DATE=$(date +"%Y-%m-%d %H")" >> $GITHUB_ENV
           echo "FILE_DATE=$(date +"%Y.%m.%d.%H")" >> $GITHUB_ENV
+          echo "RELEASE_TAG=${BRANCH_NAME}-$(date +"%Y.%m.%d.%H")" >> $GITHUB_ENV
 
       - name: Check Space Usage
         if: (!cancelled())
@@ -172,17 +180,19 @@ jobs:
           [ -n "$VPS_USER" ] || { echo "VPS_USER is not configured" >&2; exit 1; }
           [ -n "$VPS_TARGET_DIR" ] || { echo "VPS_TARGET_DIR is not configured" >&2; exit 1; }
           [ -n "$DEFAULT_VERSION" ] || { echo "DEFAULT_VERSION is empty" >&2; exit 1; }
+          [ -n "$BRANCH_NAME" ] || { echo "BRANCH_NAME is empty" >&2; exit 1; }
           [[ "$VPS_USER" =~ ^[A-Za-z0-9._-]+$ ]] || { echo "Invalid VPS_USER" >&2; exit 1; }
           [[ "$VPS_HOST" =~ ^[A-Za-z0-9.-]+$ ]] || { echo "Invalid VPS_HOST" >&2; exit 1; }
           [[ "$VPS_TARGET_DIR" =~ ^/[A-Za-z0-9._/-]+$ ]] || { echo "VPS_TARGET_DIR must be a safe absolute path" >&2; exit 1; }
           [ "$VPS_TARGET_DIR" != "/" ] || { echo "VPS_TARGET_DIR must not be /" >&2; exit 1; }
           [[ "$VPS_TARGET_DIR" != *".."* ]] || { echo "VPS_TARGET_DIR must not contain .." >&2; exit 1; }
           [[ "$DEFAULT_VERSION" =~ ^[A-Za-z0-9._-]+$ ]] || { echo "Invalid DEFAULT_VERSION" >&2; exit 1; }
+          [[ "$BRANCH_NAME" =~ ^[A-Za-z0-9._-]+$ ]] || { echo "Invalid BRANCH_NAME" >&2; exit 1; }
           [ -d "$OPENWRT_PATH/bin" ] || { echo "Firmware bin directory does not exist" >&2; exit 1; }
 
           remote="$VPS_USER@$VPS_HOST"
           target_root="${VPS_TARGET_DIR%/}"
-          target_dir="$target_root/$DEFAULT_VERSION"
+          target_dir="$target_root/$BRANCH_NAME/$DEFAULT_VERSION"
           ssh -i ~/.ssh/id_rsa "$remote" "mkdir -p '$target_dir'"
           rsync -avz --progress --delete -e "ssh -i ~/.ssh/id_rsa" "$OPENWRT_PATH/bin/" "$remote:$target_dir/"
           # 同步后在 VPS 上生成网页目录、调整权限
@@ -208,12 +218,13 @@ jobs:
           path: ${{ env.FIRMWARE_PATH }}
 
       - name: Upload Firmware To Release
+        id: release
         if: steps.compile.outputs.status == 'success' && env.FIRMWARE_RELEASE == 'true'
         uses: ncipollo/release-action@v1
         with:
-          name: R${{ env.FILE_DATE }} for ${{ env.FIRMWARE_TAG }}
+          name: R${{ env.FILE_DATE }} for ${{ env.BRANCH_NAME }}
           allowUpdates: true
-          tag: ${{ env.FILE_DATE }}
+          tag: ${{ env.RELEASE_TAG }}
           token: ${{ secrets.GH_TOKEN }}
           artifacts: ${{ env.FIRMWARE_PATH }}/*
           body: |
@@ -222,7 +233,7 @@ jobs:
             - 💻 平台架构: ${{ env.DEVICE_TARGET }}-${{ env.DEVICE_SUBTARGET }}
             - ⚽ 固件源码: ${{ env.REPO_URL }}
             - 💝 源码分支: ${{ env.REPO_BRANCH }} ${{ env.DEFAULT_VERSION }}
-            - 💝 luci版本：openwrt-24.10
+            - 💝 LuCI版本：${{ env.LUCI_BRANCH }}
             - 🚀 内核版本: ${{ env.KERNEL }}
             - 🌐 默认地址: 192.168.5.1
             - 🔑 默认密码: password
@@ -234,29 +245,55 @@ jobs:
             - ${{ env.COMMIT_HASH }}
 
       - name: Remove old Releases
-        uses: dev-drprasad/delete-older-releases@v0.3.4
-        if: env.FIRMWARE_RELEASE == 'true' && !cancelled()
-        with:
-          keep_latest: 4
-          delete_tags: true
+        if: steps.release.outcome == 'success'
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          set -euo pipefail
+          prefix="${BRANCH_NAME}-"
+          gh api --paginate "repos/$GITHUB_REPOSITORY/releases" --jq '.[] | [.created_at, .id, .tag_name] | @tsv' |
+            awk -F '\t' -v prefix="$prefix" 'index($3, prefix) == 1' |
+            sort -r -k1,1 |
+            tail -n +5 |
+            while IFS=$'\t' read -r created_at release_id tag_name; do
+              [ -n "$release_id" ] || continue
+              echo "Deleting old release $tag_name"
+              gh api --method DELETE "repos/$GITHUB_REPOSITORY/releases/$release_id"
+              gh api --method DELETE "repos/$GITHUB_REPOSITORY/git/refs/tags/$tag_name" || true
+            done
 
-      - name: Notify on Compile Status
-        if: always()
+      - name: Notify on Success
+        if: success()
         uses: appleboy/telegram-action@v1.0.1
         with:
           to: ${{ secrets.TELEGRAM_CHAT_ID }}
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           message: |
-            编译状态 ${{ job.status }}!
+            编译发布成功！
             工作流: ${{ github.workflow }}
             用户名: ${{ github.actor }}
             仓库: ${{ github.repository }}
             固件源码: ${{ env.REPO_URL }}
+            仓库分支: ${{ env.BRANCH_NAME }}
             源码分支: ${{ env.REPO_BRANCH }}
             OpenWrt源码: ${{ env.DEFAULT_VERSION }}
             内核版本: ${{ env.KERNEL }}
-            Luci版本：openwrt-24.10
+            LuCI版本: ${{ env.LUCI_BRANCH }}
+            Release标签: ${{ env.RELEASE_TAG }}
             Commit: ${{ github.sha }}
-            编译完成，已发布到 VPS 和 Github！
+            已发布到 VPS 和 GitHub！
+
+      - name: Notify on Failure
+        if: failure()
+        uses: appleboy/telegram-action@v1.0.1
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          message: |
+            编译或发布失败！
+            工作流: ${{ github.workflow }}
+            仓库: ${{ github.repository }}
+            仓库分支: ${{ github.ref_name }}
+            LuCI版本: ${{ env.LUCI_BRANCH }}
+            Commit: ${{ github.sha }}
+            VPS 和 GitHub 发布结果未确认，请检查工作流日志。
