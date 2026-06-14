@@ -50,7 +50,9 @@ function git_sparse_clone() {
 }
 
 # 添加额外插件
-git_sparse_clone main https://github.com/kenzok8/small-package luci-app-adguardhome
+# 删除 LEDE 自带的旧版 adguardhome，改用 kenzok8 的最新稳定版(含二进制包与 LuCI)
+rm -rf feeds/packages/net/adguardhome package/feeds/packages/adguardhome
+git_sparse_clone main https://github.com/kenzok8/small-package luci-app-adguardhome adguardhome
 git clone --depth=1 https://github.com/tonylee2022/luci-app-openclaw package/luci-app-openclaw
 git clone --depth=1 https://github.com/sirpdboy/luci-app-poweroffdevice package/luci-app-poweroffdevice
 git clone --depth=1 https://github.com/sirpdboy/netspeedtest package/netspeedtest-luci
