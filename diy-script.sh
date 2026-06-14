@@ -70,7 +70,6 @@ git_sparse_clone openwrt-23.05 https://github.com/openwrt/packages net/transmiss
 git clone --depth=1 https://github.com/Openwrt-Passwall/openwrt-passwall-packages package/openwrt-passwall
 git clone --depth=1 https://github.com/Openwrt-Passwall/openwrt-passwall package/luci-app-passwall
 git clone --depth=1 https://github.com/vernesong/OpenClash package/openclash-luci ##测试
-git clone --depth=1 https://github.com/Openwrt-Passwall/openwrt-passwall2 package/luci-app-passwall2
 # git_sparse_clone master https://github.com/vernesong/OpenClash luci-app-openclash 测试后可删
 
 # Themes
