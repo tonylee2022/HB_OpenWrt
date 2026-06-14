@@ -9,16 +9,6 @@ CONFIG_TARGET_DEFAULT_LAN_IP_FROM_PREINIT=y
 CONFIG_TARGET_PREINIT_IP="192.168.5.1"
 CONFIG_TARGET_PREINIT_BROADCAST="192.168.5.255"
 EOF
-
-# miniupnpd 钉死 iptables 变体：本固件用 fw3/iptables 防火墙，不带 nft。
-# 上游 miniupnpd 的 nftables 变体是 DEFAULT_VARIANT，defconfig 会自动选它，
-# 在 fw3 系统上无法写规则，导致 daemon.err 刷屏
-# (nft_send_rule send_batch failed -4 / Failed to add NAT-PMP ...)。
-sed -i '/^CONFIG_PACKAGE_miniupnpd-iptables=/d; /CONFIG_PACKAGE_miniupnpd-nftables/d' .config
-cat >> .config <<'EOF'
-CONFIG_PACKAGE_miniupnpd-iptables=y
-# CONFIG_PACKAGE_miniupnpd-nftables is not set
-EOF
 # 修改默认密码为空
 # sed -i 's/$1$V4UetPzk$CYXluq4wUazHjmCDBCqXF.//g' package/lean/default-settings/files/zzz-default-settings
 
@@ -60,7 +50,7 @@ function git_sparse_clone() {
 }
 
 # 添加额外插件
-git clone --depth=1 https://github.com/kongfl888/luci-app-adguardhome package/luci-app-adguardhome
+git_sparse_clone main https://github.com/kenzok8/small-package luci-app-adguardhome
 git clone --depth=1 https://github.com/tonylee2022/luci-app-openclaw package/luci-app-openclaw
 git clone --depth=1 https://github.com/sirpdboy/luci-app-poweroffdevice package/luci-app-poweroffdevice
 git clone --depth=1 https://github.com/sirpdboy/netspeedtest package/netspeedtest-luci
