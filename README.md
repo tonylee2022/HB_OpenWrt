@@ -1,6 +1,6 @@
 # HB_OpenWrt
 
-本仓库用于基于 Lean LEDE `master` 源码编译 x86_64 OpenWrt 固件。构建、配置整理、GitHub 发布、GitHub Pages 软件包目录和 VPS 上传均由 GitHub Actions 完成。
+本仓库用于基于 Lean LEDE `master` 源码编译 x86_64 OpenWrt 固件。构建、配置整理、GitHub 发布和 VPS 上传均由 GitHub Actions 完成。
 
 ## 分支说明
 
@@ -45,16 +45,6 @@
 - 清理旧 Release
 - 发送 Telegram 构建通知
 
-### lede-x86-64-deploy-pages.yml
-
-用于 GitHub 发布和 Pages 部署：
-
-- 编译 x86_64 固件
-- 创建 GitHub Release
-- 将软件包目录部署到 GitHub Pages
-- 清理旧 Release
-- 发送 Telegram 构建及部署通知
-
 ### clean-config.yml
 
 用于重新整理配置：
@@ -86,7 +76,6 @@
 ssh-keyscan -H your-vps-host
 ```
 
-运行 `lede-x86-64-deploy-pages.yml` 时，Release 和 Pages 使用 GitHub 自动提供的 `GITHUB_TOKEN`；Telegram 通知仍需要配置对应的两个密钥。
 
 ## 使用方法
 
@@ -95,7 +84,7 @@ ssh-keyscan -H your-vps-host
 3. 在 `diy-script.sh` 中维护自定义软件包和默认设置。
 4. 按所选工作流配置仓库密钥。
 5. 在 GitHub Actions 中手动运行对应工作流。
-6. 编译完成后，从 GitHub Release、GitHub Pages 或 VPS 获取成果。
+6. 编译完成后，从 GitHub Release 或 VPS 获取成果。
 
 ## 主要文件
 
@@ -106,7 +95,6 @@ ssh-keyscan -H your-vps-host
 | `scripts/init-settings.sh` | 首次启动后的默认配置 |
 | `scripts/preset-terminal-tools.sh` | 终端工具预置 |
 | `.github/workflows/X86_64-OpenWrt-VPS-Github.yml` | VPS 与 GitHub Release 发布 |
-| `.github/workflows/lede-x86-64-deploy-pages.yml` | GitHub Release 与 Pages 发布 |
 | `.github/workflows/clean-config.yml` | 配置整理与回写 |
 
 ## 注意事项
@@ -114,4 +102,3 @@ ssh-keyscan -H your-vps-host
 - 本仓库仅维护 x86_64 配置，不包含其他设备的构建配置。
 - 自定义软件包来自多个上游仓库，上游变更或失效可能导致编译失败。
 - VPS 工作流会替换目标版本目录，`VPS_TARGET_DIR` 必须使用专门的固件发布目录。
-- 两个发布工作流都会创建 Release，同一版本只运行其中一个即可。
