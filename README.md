@@ -1,4 +1,4 @@
-# HB_OpenWrt
+# LEDE-build-action
 
 本仓库用于基于 Lean LEDE `master` 源码编译 x86_64 OpenWrt 固件。构建、配置整理、GitHub 发布和 VPS 上传均由 GitHub Actions 完成。
 
