@@ -55,7 +55,20 @@ jobs:
       - name: Clean and Minimize Config
         run: |
           cd $OPENWRT_PATH
+          # 选项保全校验（前）：记录仓库 config 里所有显式 =y 的选项（含 INCLUDE 子选项）
+          grep -E '^CONFIG_.*=y' "$GITHUB_WORKSPACE/$CONFIG_FILE" | sort > /tmp/before-opts.txt
           make defconfig
+          # 选项保全校验（后）：找出 make defconfig 后不再生效的显式选项
+          : > /tmp/removed-opts.txt
+          while IFS= read -r opt; do
+            grep -qxF "$opt" .config || printf '%s\n' "$opt" >> /tmp/removed-opts.txt
+          done < /tmp/before-opts.txt
+          if [ -s /tmp/removed-opts.txt ]; then
+            echo "::warning::以下显式选项因上游变化已失效并被移除（请确认是否影响功能）："
+            cat /tmp/removed-opts.txt
+          else
+            echo "选项保全校验通过：没有显式选项被移除。"
+          fi
           ./scripts/diffconfig.sh > defconfig
           cp defconfig $GITHUB_WORKSPACE/$CONFIG_FILE
 
@@ -64,5 +77,14 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add $CONFIG_FILE
-          git commit -m "Auto-clean config [skip ci]" || echo "No changes to commit"
+          # 组装提交信息：若有被移除的显式选项，一并写入，便于日后追溯
+          {
+            echo "Auto-clean config [skip ci]"
+            if [ -s /tmp/removed-opts.txt ]; then
+              echo ""
+              echo "因上游变化被移除的显式选项："
+              sed 's/^/  - /' /tmp/removed-opts.txt
+            fi
+          } > /tmp/commit-msg.txt
+          git commit -F /tmp/commit-msg.txt || echo "No changes to commit"
           git push origin ${{ github.ref_name }}
