@@ -14,4 +14,7 @@ git clone --depth=1 https://github.com/zsh-users/zsh-completions ./.oh-my-zsh/cu
 # Get .zshrc dotfile
 cp $GITHUB_WORKSPACE/scripts/.zshrc .
 
+# 删除 .git 元数据，避免把仓库历史打包进固件，显著减小体积
+find ./.oh-my-zsh -type d -name '.git' -prune -exec rm -rf {} +
+
 popd
